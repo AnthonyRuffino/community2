@@ -1,0 +1,35 @@
+<div ng-app>
+    <h2>Enter a log : </h2>
+    <div ng-controller="LogCtrl">
+        <form ng-submit="addLog()">
+            <input type="text" ng-model="logTitle" size="30"
+                   placeholder="add log">
+            <input type="text" ng-model="logDate" />
+            <textarea ng-model="logText"></textarea>
+            <input class="btn-primary" type="submit" value="add">
+        </form>
+
+        <p ng-show="error" style="color:red;">Error: {{error}}</p>
+
+        <br />
+        <br />
+
+        <span>Logs: {{count()}}</span>
+
+        <div ng-repeat="(key, value) in logs">
+            <section class="featured" id="log-{{key}}">
+                <div class="content-wrapper">
+                    <hgroup class="title">
+                        <h1>{{value.logTitle}}</h1>
+                        <h2>{{value.logDate}}</h2>
+                    </hgroup>
+                    <div>
+                        {{value.logText}}
+                    </div>
+                </div>
+            </section>
+            <hr />
+        </div>
+        
+    </div>
+</div>
