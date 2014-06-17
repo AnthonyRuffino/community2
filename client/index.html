@@ -3,8 +3,8 @@
   <head>
     <title>Chat Example</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/modernizr-2.6.2.js"></script>
     <style>
       body {
         padding-top: 60px;
@@ -44,57 +44,293 @@
         };
       }
     </script>
+    <script>
+    function TodoCtrl($scope, $http) {
+
+        $http.get('/api/data?key=ToDoList').
+        success(function (data) {
+            $scope.todos = data;
+        });
+        
+
+        $scope.todos = {};
+
+        $scope.error = null;
+
+        $scope.addTodo = function () {
+
+            $scope.error = null;
+
+            if ($scope.todoText != null && $scope.todoText.length > 0) {
+                $http({
+                    url: '/api/data?key=ToDoList',
+                    dataType: 'json',
+                    method: 'POST',
+                    data: 'bodyvalue={"text":"' + $scope.todoText + '","done":false}',
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    }
+
+                }).success(function (response) {
+                    $scope.todos[response.id] = { text: $scope.todoText, done: false };
+                    $scope.todoText = '';
+                }).error(function (error) {
+                    $scope.error = error.Message;
+                });
+            }
+            else {
+                $scope.error = 'You must enter a value.';
+            }
+
+
+        };
+
+        $scope.remaining = function () {
+            var count = 0;
+            angular.forEach($scope.todos, function (todo) {
+                count += todo.done ? 0 : 1;
+            });
+            return count;
+        };
+
+        $scope.finished = function () {
+            var count = 0;
+            angular.forEach($scope.todos, function (todo) {
+                count += todo.done ? 1 : 0;
+            });
+            return count;
+        };
+
+
+        $scope.count = function () {
+            var count = Object.keys($scope.todos).length;
+            return count;
+        };
+
+        $scope.remove = function () {
+
+            $scope.error = null;
+
+            if ($scope.finished() > 0) {
+                var oldTodos = $scope.todos;
+                $scope.todos = {};
+                angular.forEach(oldTodos, function (value, key) {
+                    if (!value.done) {
+                        $scope.todos[key] = value;
+                    }
+                    else {
+                        $http({
+                            url: '/api/data?key=ToDoList&id=' + key,
+                            dataType: 'json',
+                            method: 'DELETE',
+                            data: '',
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            }
+
+                        }).success(function (response) {
+                            if (response.deleted) {
+
+                            }
+                            else {
+                                $scope.error += "[" + key + ' was not deleted' + error.Message + "]";
+                            }
+                        }).error(function (error) {
+                            $scope.error = error.Message;
+                        });
+                    }
+                });
+            }
+            else {
+                $scope.error = 'Nothing to remove';
+            }
+        };
+    }
+</script>
   </head>
   <body>
-    <div class="container" ng-controller="ChatController">
-      <div class="navbar navbar-fixed-top navbar-inverse">
-        <div class="navbar-inner">
-          <div class="pull-right">
-            <a href="https://c9.io" class="brand">Cloud9 IDE</a>
-          </div>
+  <header>
+        <div class="content-wrapper">
+            <div class="float-left">
+                <p class="site-title"><a href="#">angularjs-tampa.org</a></p>
+            </div>
+            <div class="float-right">
+                <nav>
+                    <ul id="menu">
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><li><a href="#">Demo</a></li></li>
+                        <li><li><a href="#">Logs</a></li></li>
+                    </ul>
+                </nav>
+            </div>
         </div>
-      </div>
-      <div class="page-header">
-        <h1>Chat Example</h1>
-      </div>
-      <div class="row">
-        <div class="span3">
-          <ul class="nav nav-list well">
-            <li class="nav-header">Local Users</li>
-            <li ng-repeat="user in roster" ng-bind="user">
-            </li>
-          </ul>
-        </div>
-        <div class="span9">
-          <table class="table table-striped table-bordered">
-            <thead>
-              <tr>
-                <th class="span2">Name</th>
-                <th class="span7">Text</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr ng-repeat="msg in messages">
-                <td class="span2" ng-bind="msg.name"></td>
-                <td class="span7" ng-bind="msg.text"></td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="row controls">
-            <form ng-submit="send()">
-              <div class="span2"><input type="text" class="input-block-level" ng-model="name" ng-change="setName()" placeholder="Your Name"></div>
-              <div class="input-append span7">
-                <input type="text" class="span6" ng-model="text" placeholder="Message">
-                <input type="submit" class="span1 btn btn-primary" value="Send" ng-disabled="!text">
+    </header>
+    
+    <div id="body">
+        <section class="content-wrapper main-content clear-fix">
+    
+            <section class="featured">
+                <div class="content-wrapper">
+                    <hgroup class="title">
+                        <h1>Welcome</h1>
+                        <h2>This is our sandbox.</h2>
+                    </hgroup>
+                    <p>If you are reading this chances are you live in the Tampa Bay area and like to do stuff with computers, and more recently with AngularJS.<p />
+                    <p>Awesome. So do we. Join us.</p>
+                </div>
+            </section>
+            
+            <script>!function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.async = true; js.src = "https://secure.meetup.com/script/21021123101537681383/api/mu.btns.js?id=qkf685r8odq6ttlpqrbn4b9i91"; fjs.parentNode.insertBefore(js, fjs); } }(document, "script", "mu-bootjs");</script>
+            
+            
+            
+            <br />
+                <div class="fb-like" data-href="http://angularjs-tampa.org/" data-layout="standard" data-action="like" data-show-faces="true" data-share="true"></div>
+            <br />
+        
+        
+            <h3>Project Goals: </h3>
+            <ol class="round">
+                <li class="one">
+                    <h5>The beta release should: </h5>
+                    1. yield a tool that can be used to help groups of people to work together collaboratively.
+                    <br />
+                    2. compete with some aspects of proprietary tools like Salesforce, At Task, Sharepoint, etc.
+                    <br />
+                    3. leverage partner-networks to post updates for a given group/project in various other social spheres.  These should include Google+, Facebook, Twitter and Meetup.
+                    <br />
+                    4. be able to be built anywhere freely and the source code should exist on GitHub with an agreed upon free software license.
+                    <br />
+                    5. have an instance hosted by us as well to serve as the initial reference implementation.  I regestered <a href="http://ncidence.org">ncidence.org</a> for the group with that in mind tonight.
+                </li>
+            
+                <li class="two">
+                    <h5>As a group we should: </h5>
+                    1. Enforce free software for the production releases (Angular uses the MIT license after all)
+                    <br />
+                    2. Accept the use of non-free software for testing and tutorial creation purposes (knowing that free source solutions will be slated to replace the closed source modules).
+                    <br />
+                    3. Strive to test and document everything.
+                    <br />
+                    4. Experiment with related frameworks and record and organize our efforts in well formatted and clean tutorial videos. (Screen captures and audio of live presentations and produced/scripted screen-capture sessions)  This is not just to add to the community, but if nothing else we will all walk away with another bean for the next hiring manager to count.  These videos will also serve to catch new members up to speed.
+                </li>
+            
+            </ol>
+            
+            
+            <br />
+        
+            <h3>So how do we get to the beta:</h3>
+            <ol class="round">
+                <li>
+                    <b>Visit the <a href="http://www.meetup.com/AngularJs-Tampa-applied/">AngularJs - Tampa (ncidence)</a> Meetup page.</b>
+                    <br/>
+                    <b><a href="https://www.facebook.com/pages/Angularjs-Tampa/251879665005081">Facebook</a> is a thing too right?</b>
+                </li>
+                <li>
+                    <h5>Future iterations: </h5>
+                    1. We will start by creating a simple static ToDo list.  That will evolve into being backed by a DB.
+                    <br />
+                    2. That database will be house a user model at some point and we will create a login system for managing user specific ToDo lists.
+                    <br />
+                    3. Those users should be able to find each other and form groups and create projects and make ToDo list for those projects with workables assigned to different group members and contingent upon other workables.
+                    <br />
+                    4. At this point, the tool itself will be what we use to organize the progression of the tool itself.
+                </li>
+            
+            </ol>
+        
+        
+            <br />
+            <br />
+        
+            Visit our Facebook page: <a href="https://www.facebook.com/pages/Angularjs-Tampa/251879665005081"><img src="/img/facebook.jpg" /></a>
+            
+            <div>
+                <h2>Todo List Example: </h2>
+                <div ng-controller="TodoCtrl">
+                    <form ng-submit="addTodo()">
+                        <input type="text" ng-model="todoText" size="30"
+                               placeholder="add new todo here">
+                        <input class="btn-primary" type="submit" value="add">
+                    </form>
+            
+                    <span>{{remaining()}} of {{count()}} remaining</span>
+                    [ <a href="" ng-click="remove()">remove</a> ]
+                    <ul class="unstyled">
+                        <li ng-repeat="(key, value) in todos">
+                            <input type="checkbox" ng-model="value.done">
+                            <span>{{value.text}}</span>
+                        </li>
+                    </ul>
+            
+                    <p ng-show="error" style="color:red;">Error: {{error}}</p>
+                </div>
+            </div>
+            
+            
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+        
+            <div class="container" ng-controller="ChatController">
+              <div class="page-header">
+                <h2>Chat Example - Socket.io (from Cloud 9)</h2>
               </div>
-            </form>
-          </div>
-        </div>
-      </div>
+              <div class="row">
+                <div class="span3">
+                  <ul class="nav nav-list well">
+                    <li class="nav-header">Local Users</li>
+                    <li ng-repeat="user in roster" ng-bind="user">
+                    </li>
+                  </ul>
+                </div>
+                <div class="span9">
+                  <table class="table table-striped table-bordered">
+                    <thead>
+                      <tr>
+                        <th class="span2">Name</th>
+                        <th class="span7">Text</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="msg in messages">
+                        <td class="span2" ng-bind="msg.name"></td>
+                        <td class="span7" ng-bind="msg.text"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="row controls">
+                    <form ng-submit="send()">
+                      <div class="span2"><input type="text" class="input-block-level" ng-model="name" ng-change="setName()" placeholder="Your Name"></div>
+                      <div class="input-append span7">
+                        <input type="text" class="span6" ng-model="text" placeholder="Message">
+                        <input type="submit" class="span1 btn btn-primary" value="Send" ng-disabled="!text">
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </section>
     </div>
+    
+    <footer>
+        <div class="content-wrapper">
+            <div class="float-left">
+                <p>2014 - angularjs-tampa.org</p>
+            </div>
+        </div>
+    </footer>
+    
+    
+    
+    
+    
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
     <script src="/js/angular.min.js"></script>
   </body>
 </html>

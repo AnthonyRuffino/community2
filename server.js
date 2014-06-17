@@ -24,6 +24,83 @@ router.use(express.static(path.resolve(__dirname, 'client')));
 var messages = [];
 var sockets = [];
 
+
+
+var database = {};
+
+router.use(express.bodyParser());
+
+
+router.get('/api/data', function(req, res) {
+    var key = req.query.key;
+    var id = req.query.id;
+    
+    
+    if(database[key] == null){
+        res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now."});	
+    }
+    else{
+        if(id == null){
+            res.json(200, database[key]);
+        }
+        else{
+            var item = database[key][id];
+            
+            if(item != null){
+                res.json(200, item);
+            }
+            else{
+                res.json(404, { Message: "No item with id ["+id+"] found in datasource with key [" + key + "]."});
+            }
+        }
+    }
+});
+
+
+
+router.post('/api/data', function(req, res) {
+    var key = req.query.key;
+    if(database[key] == null){
+        database[key] = {};
+    }
+    var newGuid = guid();
+    
+    database[key][newGuid] = JSON.parse(req.body.bodyvalue);
+    
+    res.json(200, { id: newGuid });
+	
+});
+
+
+router.delete('/api/data', function(req, res) {
+    var key = req.query.key;
+    var id = req.query.id;
+    
+    if(key == null){
+        res.json(404, { Message: "No key parameter was specified."});
+    }
+    else if(id == null){
+        res.json(404, { Message: "No id parameter was specified."});
+    }
+    else{
+    
+        if(database[key] == null){
+            res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now."});	
+        }
+        else{
+            
+            if(database[key][id] != null){
+                delete database[key][id];
+                res.json(200, { deleted: true });
+            }
+            else{
+                res.json(404, { Message: "No item with id ["+id+"] found in datasource with key [" + key + "]."});
+            }
+        }
+    }
+});
+
+
 io.on('connection', function (socket) {
     messages.forEach(function (data) {
       socket.emit('message', data);
@@ -82,3 +159,17 @@ server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
   var addr = server.address();
   console.log("Chat server listening at", addr.address + ":" + addr.port);
 });
+
+
+
+var guid = (function() {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+               .toString(16)
+               .substring(1);
+  }
+  return function() {
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+           s4() + '-' + s4() + s4() + s4();
+  };
+})();
