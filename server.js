@@ -30,6 +30,54 @@ var database = {};
 
 router.use(express.bodyParser());
 
+router.get('/api/beer/striketemp', function(req, res) {
+/*
+	Strike Water Temperature Tw = (.2/r)(T2 - T1) + T2
+
+	where:
+	r = The ratio of water to grain in quarts per pound.
+	T1 = The initial temperature (¡F) of the mash.
+	T2 = The target temperature (¡F) of the mash.
+	Tw = The actual temperature (¡F) of the infusion water. 
+*/
+
+	var quartsWater = req.query.quarts;
+	var lbsGrain = req.query.lbs;
+	var t1 = req.query.t1;
+	var t2 = req.query.t2;
+
+	if(quartsWater == null || quartsWater <= 0){
+		res.json(404, { Message: "The 'quarts' parameter was not set!"});	
+	}
+
+	if(lbsGrain == null || lbsGrain <= 0){
+                res.json(404, { Message: "The 'lbs' parameter was not set!"});
+        }
+
+	if(t1 == null || t1 <= 32){
+                res.json(404, { Message: "The 't1' parameter was not set!"});
+        }
+
+	if(t2 == null || t2 <= 32){
+                res.json(404, { Message: "The 't2' parameter was not set!"});
+        }
+
+	quartsWater = parseFloat(req.query.quarts);
+        lbsGrain = parseFloat(req.query.lbs);
+        t1 = parseFloat(req.query.t1);
+        t2 = parseFloat(req.query.t2);	
+
+	var temp = (((.2 / (quartsWater/lbsGrain) ) * (t2 - t1)) + t2);
+
+	res.json(200, { Message: "All good!", strikeTemp: temp, quartsWater: quartsWater, lbsGrain: lbsGrain, t2: t2, t1: t1, formula: "strikeTemp = (((.2 / (quartsWater/lbsGrain) ) * (t2 - t1)) + t2)" });
+
+//	res.json(200, { Message: "All good!" });
+
+});
+
+router.get('/api/beer', function(req, res) {
+	res.json(200, { Message: 'Drink Beer' });
+});
 
 router.get('/api/data', function(req, res) {
     var key = req.query.key;
@@ -37,7 +85,7 @@ router.get('/api/data', function(req, res) {
     
     
     if(database[key] == null){
-        res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now."});	
+        res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now!"});	
     }
     else{
         if(id == null){
