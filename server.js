@@ -46,19 +46,19 @@ router.get('/api/beer/striketemp', function(req, res) {
 	var t1 = req.query.t1;
 	var t2 = req.query.t2;
 
-	if(quartsWater == null || quartsWater <= 0){
+	if(quartsWater === null || quartsWater <= 0){
 		res.json(404, { Message: "The 'quarts' parameter was not set!"});	
 	}
 
-	if(lbsGrain == null || lbsGrain <= 0){
+	if(lbsGrain === null || lbsGrain <= 0){
                 res.json(404, { Message: "The 'lbs' parameter was not set!"});
         }
 
-	if(t1 == null || t1 <= 32){
+	if(t1 === null || t1 <= 32){
                 res.json(404, { Message: "The 't1' parameter was not set!"});
         }
 
-	if(t2 == null || t2 <= 32){
+	if(t2 === null || t2 <= 32){
                 res.json(404, { Message: "The 't2' parameter was not set!"});
         }
 
@@ -67,7 +67,7 @@ router.get('/api/beer/striketemp', function(req, res) {
         t1 = parseFloat(req.query.t1);
         t2 = parseFloat(req.query.t2);	
 
-	var temp = (((.2 / (quartsWater/lbsGrain) ) * (t2 - t1)) + t2);
+	var temp = (((0.2 / (quartsWater/lbsGrain) ) * (t2 - t1)) + t2);
 
 	res.json(200, { Message: "All good!", strikeTemp: temp, quartsWater: quartsWater, lbsGrain: lbsGrain, t2: t2, t1: t1, formula: "strikeTemp = (((.2 / (quartsWater/lbsGrain) ) * (t2 - t1)) + t2)" });
 
@@ -84,17 +84,17 @@ router.get('/api/data', function(req, res) {
     var id = req.query.id;
     
     
-    if(database[key] == null){
+    if(database[key] === null){
         res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now!"});	
     }
     else{
-        if(id == null){
+        if(id === null){
             res.json(200, database[key]);
         }
         else{
             var item = database[key][id];
             
-            if(item != null){
+            if(item !== null){
                 res.json(200, item);
             }
             else{
@@ -108,7 +108,7 @@ router.get('/api/data', function(req, res) {
 
 router.post('/api/data', function(req, res) {
     var key = req.query.key;
-    if(database[key] == null){
+    if(database[key] === null){
         database[key] = {};
     }
     var newGuid = guid();
@@ -124,20 +124,20 @@ router.delete('/api/data', function(req, res) {
     var key = req.query.key;
     var id = req.query.id;
     
-    if(key == null){
+    if(key === null){
         res.json(404, { Message: "No key parameter was specified."});
     }
-    else if(id == null){
+    else if(id === null){
         res.json(404, { Message: "No id parameter was specified."});
     }
     else{
     
-        if(database[key] == null){
+        if(database[key] === null){
             res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now."});	
         }
         else{
             
-            if(database[key][id] != null){
+            if(database[key][id] !== null){
                 delete database[key][id];
                 res.json(200, { deleted: true });
             }
