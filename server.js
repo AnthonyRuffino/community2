@@ -10,6 +10,7 @@ var async = require('async');
 var socketio = require('socket.io');
 var express = require('express');
 
+
 //
 // ## SimpleServer `SimpleServer(obj)`
 //
@@ -27,8 +28,45 @@ var sockets = [];
 
 
 var database = {};
+var crawlerDatabase = {};
 
 router.use(express.bodyParser());
+
+
+
+router.get('/api/crawler', function(req, res) {
+
+ 
+        var jobId = req.query.jobId;
+        var newStatus = req.query.newStatus;
+
+	if(jobId == null){
+                res.json(404, { Message: "The 'jobId' parameter was not set!"});
+        }
+
+        if(newStatus == null){
+		if(crawlerDatabase.hasOwnProperty(jobId)){
+			res.json(200, "response: " + crawlerDatabase[jobId]);
+		}
+		else{
+			res.json(404, { Message: "No jobId named [" + jobId + "] was found." });
+		}
+                
+        }
+	else{
+		crawlerDatabase[jobId] = newStatus;
+		res.json(200, "jobId " + jobId + " updated");
+	}
+        
+
+});
+
+
+
+
+
+
+
 
 router.get('/api/beer/striketemp', function(req, res) {
 /*
@@ -46,19 +84,19 @@ router.get('/api/beer/striketemp', function(req, res) {
 	var t1 = req.query.t1;
 	var t2 = req.query.t2;
 
-	if(quartsWater === null || quartsWater <= 0){
-		res.json(404, { Message: "The 'quarts' parameter was not set!"});	
+	if(quartsWater === undefined || quartsWater <= 0){
+		res.json(404, { Message: "The 'quarts' parameter was not set silly!"});	
 	}
 
-	if(lbsGrain === null || lbsGrain <= 0){
+	if(lbsGrain === undefined || lbsGrain <= 0){
                 res.json(404, { Message: "The 'lbs' parameter was not set!"});
         }
 
-	if(t1 === null || t1 <= 32){
+	if(t1 === undefined || t1 <= 32){
                 res.json(404, { Message: "The 't1' parameter was not set!"});
         }
 
-	if(t2 === null || t2 <= 32){
+	if(t2 === undefined || t2 <= 32){
                 res.json(404, { Message: "The 't2' parameter was not set!"});
         }
 
