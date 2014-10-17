@@ -122,17 +122,17 @@ router.get('/api/data', function(req, res) {
     var id = req.query.id;
     
     
-    if(database[key] === null){
+    if(database[key] === undefined){
         res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now!"});	
     }
     else{
-        if(id === null){
+        if(id === undefined){
             res.json(200, database[key]);
         }
         else{
             var item = database[key][id];
             
-            if(item !== null){
+            if(item !== undefined){
                 res.json(200, item);
             }
             else{
@@ -146,7 +146,7 @@ router.get('/api/data', function(req, res) {
 
 router.post('/api/data', function(req, res) {
     var key = req.query.key;
-    if(database[key] === null){
+    if(database[key] === undefined){
         database[key] = {};
     }
     var newGuid = guid();
@@ -162,20 +162,20 @@ router.delete('/api/data', function(req, res) {
     var key = req.query.key;
     var id = req.query.id;
     
-    if(key === null){
+    if(key === undefined){
         res.json(404, { Message: "No key parameter was specified."});
     }
-    else if(id === null){
+    else if(id === undefined){
         res.json(404, { Message: "No id parameter was specified."});
     }
     else{
     
-        if(database[key] === null){
+        if(database[key] === undefined){
             res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now."});	
         }
         else{
             
-            if(database[key][id] !== null){
+            if(database[key][id] !== undefined){
                 delete database[key][id];
                 res.json(200, { deleted: true });
             }
