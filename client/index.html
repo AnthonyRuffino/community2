@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/site.css">
     <script src="/js/modernizr-2.6.2.js"></script>
+    <script src="/js/hashing/sha1/sha1.js"></script>
     <style>
       body {
         padding-top: 60px;
@@ -105,6 +106,12 @@
         $scope.count = function () {
             var count = Object.keys($scope.todos).length;
             return count;
+        };
+        
+        $scope.hash = function (inputText) {
+            var hashedOutput = Sha1.hash(inputText);
+            window.console.log('Hash: ' + hashedOutput);
+            $scope.hashedOutput = hashedOutput;
         };
 
         $scope.remove = function () {
@@ -266,6 +273,11 @@
                     </ul>
             
                     <p ng-show="error" style="color:red;">Error: {{error}}</p>
+                    <br/>
+                    <br/>
+                    <input type="text" ng-model="inputText" style="color:blue;"/>
+                    <button ng-click="hash(inputText)"></button>
+                    <p type="text" style="color:green;">Hash: {{hashedOutput}}</text>
                 </div>
             </div>
             

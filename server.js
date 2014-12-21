@@ -10,6 +10,7 @@ var async = require('async');
 var socketio = require('socket.io');
 var express = require('express');
 
+var sha1 = require('./client/js/hashing/sha1/sha1.js');
 
 //
 // ## SimpleServer `SimpleServer(obj)`
@@ -64,7 +65,13 @@ router.get('/api/crawler', function(req, res) {
 
 
 
-
+router.get('/api/hash', function(req, res) {
+    
+    sha1 = sha1 || require('./client/js/hashing/sha1/sha1.js');
+    var inputValue = req.query.inputValue;
+    var hashedOutputValue = sha1.hash(inputValue);
+	res.json(200, { inputValue: inputValue, hashedOutputValue: hashedOutputValue });
+});
 
 
 
