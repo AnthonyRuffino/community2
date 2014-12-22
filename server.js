@@ -10,7 +10,35 @@ var async = require('async');
 var socketio = require('socket.io');
 var express = require('express');
 
-var sha1 = require('./client/js/hashing/sha1/sha1.js');
+
+var strikeTemp = require('./beer/strikeTemp.js');
+
+var sha256 = require('./client/js/hashing/sha256/sha256.js');
+
+var h3Auth = require('./auth/h3Auth.js');
+var monty = require('./monty/monty.js');
+
+var mysteryUserSalts = {};
+var userMysteryUserSalts = false;
+
+var authMaxTimeDifferenceInMiliSeconds = 1000;
+
+var systemSalt = "RANDOMIZE_THIS_VALUE_ON_PRODUCTION_SERVERS";
+
+//var getIp = require('ipware')().get_ip;
+var getIp = function getIp(req){
+    var ip = req.headers['x-forwarded-for'] || 
+     req.connection.remoteAddress || 
+     req.socket.remoteAddress ||
+     req.connection.socket.remoteAddress;
+     
+     var clientIp = {clientIp:ip};
+     
+     return clientIp;
+}
+
+
+
 
 //
 // ## SimpleServer `SimpleServer(obj)`
@@ -65,59 +93,10 @@ router.get('/api/crawler', function(req, res) {
 
 
 
-router.get('/api/hash', function(req, res) {
-    
-    sha1 = sha1 || require('./client/js/hashing/sha1/sha1.js');
-    var inputValue = req.query.inputValue;
-    var hashedOutputValue = sha1.hash(inputValue);
-	res.json(200, { inputValue: inputValue, hashedOutputValue: hashedOutputValue });
-});
-
 
 
 router.get('/api/beer/striketemp', function(req, res) {
-/*
-	Strike Water Temperature Tw = (.2/r)(T2 - T1) + T2
-
-	where:
-	r = The ratio of water to grain in quarts per pound.
-	T1 = The initial temperature (¡F) of the mash.
-	T2 = The target temperature (¡F) of the mash.
-	Tw = The actual temperature (¡F) of the infusion water. 
-*/
-
-	var quartsWater = req.query.quarts;
-	var lbsGrain = req.query.lbs;
-	var t1 = req.query.t1;
-	var t2 = req.query.t2;
-
-	if(quartsWater === undefined || quartsWater <= 0){
-		res.json(404, { Message: "The 'quarts' parameter was not set silly!"});	
-	}
-
-	if(lbsGrain === undefined || lbsGrain <= 0){
-                res.json(404, { Message: "The 'lbs' parameter was not set!"});
-        }
-
-	if(t1 === undefined || t1 <= 32){
-                res.json(404, { Message: "The 't1' parameter was not set!"});
-        }
-
-	if(t2 === undefined || t2 <= 32){
-                res.json(404, { Message: "The 't2' parameter was not set!"});
-        }
-
-	quartsWater = parseFloat(req.query.quarts);
-        lbsGrain = parseFloat(req.query.lbs);
-        t1 = parseFloat(req.query.t1);
-        t2 = parseFloat(req.query.t2);	
-
-	var temp = (((0.2 / (quartsWater/lbsGrain) ) * (t2 - t1)) + t2);
-
-	res.json(200, { Message: "All good!", strikeTemp: temp, quartsWater: quartsWater, lbsGrain: lbsGrain, t2: t2, t1: t1, formula: "strikeTemp = (((.2 / (quartsWater/lbsGrain) ) * (t2 - t1)) + t2)" });
-
-//	res.json(200, { Message: "All good!" });
-
+	res.json(200, strikeTemp.calc(req.query.quarts, req.query.lbs, req.query.t1, req.query.t2));
 });
 
 router.get('/api/beer', function(req, res) {
@@ -266,3 +245,30 @@ var guid = (function() {
            s4() + '-' + s4() + s4() + s4();
   };
 })();
+
+
+
+
+
+
+router.get('/api/getUserSalts', function(req, res) {
+    res.json(200, h3Auth.getUserSalts(sha256, getIp(req).clientIp, req.query.userName, false, systemSalt));
+});
+
+
+router.get('/api/auth', function(req, res) {
+    var auth = h3Auth.auth(sha256, getIp(req).clientIp, req.query.userName, req.query.h3, req.query.date, authMaxTimeDifferenceInMiliSeconds)
+	res.json(200, auth);
+});
+
+
+
+
+router.get('/api/montyStats', function(req, res) {
+    res.json(200, monty.getMontyStats(req.query.players, req.query.games));
+});
+
+
+router.get('/api/playMontyGame', function(req, res) {
+	res.json(200, monty.playMontyGame(req.query.doorNumber,req.query.doSwitch));
+});
