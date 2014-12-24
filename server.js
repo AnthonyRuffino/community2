@@ -15,7 +15,7 @@ var strikeTemp = require('./beer/strikeTemp.js');
 
 var sha256 = require('./client/js/hashing/sha256/sha256.js');
 
-var h3Auth = require('./auth/h3Auth.js');
+var passTheHashAuth = require('./auth/h3Auth.js');
 var monty = require('./monty/monty.js');
 
 var mysteryUserSalts = {};
@@ -47,6 +47,7 @@ var getIp = function getIp(req){
 //  * `port` - The HTTP port to listen on. If `process.env.PORT` is set, _it overrides this value_.
 //
 var router = express();
+router.use(express.bodyParser());
 var server = http.createServer(router);
 var io = socketio.listen(server);
 
@@ -59,36 +60,15 @@ var sockets = [];
 var database = {};
 var crawlerDatabase = {};
 
-router.use(express.bodyParser());
 
 
 
-router.get('/api/crawler', function(req, res) {
+var guid = require('./utils/guid.js');
 
- 
-        var jobId = req.query.jobId;
-        var newStatus = req.query.newStatus;
-
-	if(jobId == null){
-                res.json(404, { Message: "The 'jobId' parameter was not set!"});
-        }
-
-        if(newStatus == null){
-		if(crawlerDatabase.hasOwnProperty(jobId)){
-			res.json(200, "response: " + crawlerDatabase[jobId]);
-		}
-		else{
-			res.json(404, { Message: "No jobId named [" + jobId + "] was found." });
-		}
-                
-        }
-	else{
-		crawlerDatabase[jobId] = newStatus;
-		res.json(200, "jobId " + jobId + " updated");
-	}
-        
-
+router.get('/api/guid', function(req, res) {
+	res.json(200, {guid:guid.generate(req.query.useDashes)});
 });
+
 
 
 
@@ -135,7 +115,7 @@ router.post('/api/data', function(req, res) {
     if(database[key] === undefined){
         database[key] = {};
     }
-    var newGuid = guid();
+    var newGuid = guid.generate(true);
     
     database[key][newGuid] = JSON.parse(req.body.bodyvalue);
     
@@ -234,17 +214,6 @@ server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
 
 
 
-var guid = (function() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-               .toString(16)
-               .substring(1);
-  }
-  return function() {
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-           s4() + '-' + s4() + s4() + s4();
-  };
-})();
 
 
 
@@ -252,12 +221,26 @@ var guid = (function() {
 
 
 router.get('/api/getUserSalts', function(req, res) {
-    res.json(200, h3Auth.getUserSalts(sha256, getIp(req).clientIp, req.query.userName, false, systemSalt));
+    res.json(200, passTheHashAuth.getUserSalts(sha256, getIp(req).clientIp, req.query.userName, false, systemSalt));
 });
 
 
 router.get('/api/auth', function(req, res) {
-    var auth = h3Auth.auth(sha256, getIp(req).clientIp, req.query.userName, req.query.h3, req.query.date, authMaxTimeDifferenceInMiliSeconds)
+    
+    
+    var auth = null;
+    
+    var youGotYourShitTogether = false;
+    
+    if(youGotYourShitTogether){
+        //TODO Implement auth that expects a plain text password here
+        auth = {};
+    }
+    else{
+        var somethingThatShouldntPassForAuth = passTheHashAuth.ingest(sha256, getIp(req).clientIp, req.query.userName, req.query.h3, req.query.date, authMaxTimeDifferenceInMiliSeconds);
+        auth = somethingThatShouldntPassForAuth;
+    }
+    
 	res.json(200, auth);
 });
 

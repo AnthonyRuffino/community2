@@ -27,7 +27,7 @@ H3Auth.getUserSalts = function(hasher, ip, userName, returnH1, systemSalt) {
         if(user !== undefined && user != null){
             
         }else{
-            if(systemSalt !== undefined && systemSalt != null){
+            if(!(systemSalt !== undefined && systemSalt != null)){
                 systemSalt = "n/a";
             }
             user = {};
@@ -61,7 +61,7 @@ H3Auth.getUserSalts = function(hasher, ip, userName, returnH1, systemSalt) {
 };
 
 
-H3Auth.auth = function(hasher, ip, userName, h3In, date, authMaxTimeDifferenceInMiliSeconds) {
+H3Auth.doBadAuth = function(hasher, ip, userName, h3In, date, authMaxTimeDifferenceInMiliSeconds) {
     
     var salts = H3Auth.getUserSalts(hasher, ip, userName, true);
     
@@ -125,7 +125,7 @@ H3Auth.auth = function(hasher, ip, userName, h3In, date, authMaxTimeDifferenceIn
 try {
     exports.getUser = H3Auth.getUser;
     exports.getUserSalts = H3Auth.getUserSalts;
-    exports.auth = H3Auth.auth;
+    exports.ingest = H3Auth.doBadAuth;
 }
 catch(err) {
     

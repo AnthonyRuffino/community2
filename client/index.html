@@ -11,192 +11,6 @@
         padding-top: 60px;
       }
     </style>
-    <script>
-      function ChatController($scope) {
-        var socket = io.connect();
-
-        $scope.messages = [];
-        $scope.roster = [];
-        $scope.name = '';
-        $scope.text = '';
-
-        socket.on('connect', function () {
-          $scope.setName();
-        });
-
-        socket.on('message', function (msg) {
-          $scope.messages.push(msg);
-          $scope.$apply();
-        });
-
-        socket.on('roster', function (names) {
-          $scope.roster = names;
-          $scope.$apply();
-        });
-
-        $scope.send = function send() {
-          console.log('Sending message:', $scope.text);
-          socket.emit('message', $scope.text);
-          $scope.text = '';
-        };
-
-        $scope.setName = function setName() {
-          socket.emit('identify', $scope.name);
-        };
-      }
-    </script>
-    <script>
-    function TodoCtrl($scope, $http) {
-
-        $http.get('/api/data?key=ToDoList').
-        success(function (data) {
-            $scope.todos = data;
-        });
-        
-
-        $scope.todos = {};
-
-        $scope.error = null;
-
-        $scope.addTodo = function () {
-
-            $scope.error = null;
-
-            if ($scope.todoText != null && $scope.todoText.length > 0) {
-                $http({
-                    url: '/api/data?key=ToDoList',
-                    dataType: 'json',
-                    method: 'POST',
-                    data: 'bodyvalue={"text":"' + $scope.todoText + '","done":false}',
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    }
-
-                }).success(function (response) {
-                    $scope.todos[response.id] = { text: $scope.todoText, done: false };
-                    $scope.todoText = '';
-                }).error(function (error) {
-                    $scope.error = error.Message;
-                });
-            }
-            else {
-                $scope.error = 'You must enter a value.';
-            }
-
-
-        };
-
-        $scope.remaining = function () {
-            var count = 0;
-            angular.forEach($scope.todos, function (todo) {
-                count += todo.done ? 0 : 1;
-            });
-            return count;
-        };
-
-        $scope.finished = function () {
-            var count = 0;
-            angular.forEach($scope.todos, function (todo) {
-                count += todo.done ? 1 : 0;
-            });
-            return count;
-        };
-
-
-        $scope.count = function () {
-            var count = Object.keys($scope.todos).length;
-            return count;
-        };
-
-        $scope.remove = function () {
-
-            $scope.error = null;
-
-            if ($scope.finished() > 0) {
-                var oldTodos = $scope.todos;
-                $scope.todos = {};
-                angular.forEach(oldTodos, function (value, key) {
-                    if (!value.done) {
-                        $scope.todos[key] = value;
-                    }
-                    else {
-                        $http({
-                            url: '/api/data?key=ToDoList&id=' + key,
-                            dataType: 'json',
-                            method: 'DELETE',
-                            data: '',
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded"
-                            }
-
-                        }).success(function (response) {
-                            if (response.deleted) {
-
-                            }
-                            else {
-                                $scope.error += "[" + key + ' was not deleted' + error.Message + "]";
-                            }
-                        }).error(function (error) {
-                            $scope.error = error.Message;
-                        });
-                    }
-                });
-            }
-            else {
-                $scope.error = 'Nothing to remove';
-            }
-        };
-    }
-</script>
-
-<script>
-    function AuthCtrl($scope, $http) {
-        $scope.isValid = false;
-        
-        
-        $scope.hash = function (inputText) {
-            var hashedOutput = Sha256.hash(inputText);
-            window.console.log('Hash: ' + hashedOutput);
-            $scope.hashedOutput = hashedOutput;
-        };
-        
-        $scope.getH3 = function (username, password, hs, hip, date) {
-            
-            $scope.date = date;
-            
-            var h1 = Sha256.hash(password + ":" + hs);
-            var h2 = Sha256.hash($scope.date + ":" + h1);
-            var h3 = Sha256.hash(h2 + ":" + hip);
-            
-            $scope.h3 = h3;
-        };
-    
-        
-        
-        $scope.auth = function (username, password) {
-            
-            $http.get('/api/getUserSalts?userName=' + username)
-            .success(function (salts) {
-                
-                $scope.getH3(username, password, salts.hs, salts.hip, salts.date);
-                
-                $http.get('/api/auth?userName=' + username + "&h3=" + $scope.h3 + "&date=" + $scope.date)
-                .success(function (authResponse) {
-                    $scope.isValid = authResponse.isValid;
-                }).error(function (authErrorResponse) {
-                    $scope.isValid = false;
-                    $scope.error = 'authIssue: ' + authErrorResponse.Message;
-                });
-                
-            }).error(function (saltsError) {
-                $scope.isValid = false;
-                $scope.error = 'getSaltsIssue: ' + saltsError.Message;
-            });
-        };
-        
-    }
-        
-</script>
   </head>
   <body>
   <header>
@@ -299,7 +113,7 @@
             
             <div>
                 <h2>Todo List Example: </h2>
-                <div ng-controller="TodoCtrl">
+                <div ng-controller="ToDoCtrl">
                     <form ng-submit="addTodo()">
                         <input type="text" ng-model="todoText" size="30"
                                placeholder="add new todo here">
@@ -317,7 +131,7 @@
                     <p ng-show="error" style="color:red;">Error: {{error}}</p>
                     <br/>
                 </div>
-                <div ng-controller="AuthCtrl">
+                <div ng-controller="PassTheHashCtrl">
                     <br/>
                     Text to hash: 
                     <input type="text" ng-model="inputText" style="color:blue;"/>
@@ -399,5 +213,8 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/jquery.min.js"></script>
     <script src="/js/angular.min.js"></script>
+    <script src="/app/chat.js"></script>
+    <script src="/app/toDo.js"></script>
+    <script src="/app/passTheHash.js"></script>
   </body>
 </html>

@@ -47,7 +47,7 @@ var playMontyGame = function(doorNumber,doSwitch)
             montys2ndDoorNumber = 2;
         }
         
-        if(doors["door" + montys1stDoorNumber].isWinner == false){
+        if(doors["door" + montys1stDoorNumber].isWinner === false){
             chosenDoor = doors["door" + montys2ndDoorNumber];
         }else{
             chosenDoor = doors["door" + montys1stDoorNumber];
@@ -85,11 +85,11 @@ Monty.getMontyStats = function(players, games) {
             results.stayGamesPlayed = results.stayGamesPlayed + 1;
             
             
-            if(switchResult.isWinner == true){
+            if(switchResult.isWinner === true){
                 results.switchGamesWon = results.switchGamesWon + 1;
             }
             
-            if(stayResult.isWinner == true){
+            if(stayResult.isWinner === true){
                 results.stayGamesWon = results.stayGamesWon + 1;
             }
             
