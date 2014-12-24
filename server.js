@@ -15,6 +15,13 @@ var strikeTemp = require('./beer/strikeTemp.js');
 
 var sha256 = require('./client/js/hashing/sha256/sha256.js');
 
+var chatSocketIOc9 = require('./client/app/chat.js');
+//var chatSocketIODoubleHash = require('./client/app/chat.js');
+
+var ioCon = chatSocketIOc9;
+
+var bcrypt = require('bcrypt');
+
 var passTheHashAuth = require('./auth/h3Auth.js');
 var monty = require('./monty/monty.js');
 
@@ -51,7 +58,27 @@ router.use(express.bodyParser());
 var server = http.createServer(router);
 var io = socketio.listen(server);
 
-router.use(express.static(path.resolve(__dirname, 'client')));
+//router.use(express.static(path.resolve(__dirname, 'client')));
+
+
+var fs        = require('fs');
+var publicdir = __dirname + '/client';
+
+router.use(function(req, res, next) {
+  if (req.path.indexOf('.') === -1) {
+    var file = publicdir + req.path + '.html';
+    fs.exists(file, function(exists) {
+      if (exists)
+        req.url += '.html';
+      next();
+    });
+  }
+  else
+    next();
+});
+router.use(express.static(publicdir));
+
+
 var messages = [];
 var sockets = [];
 
@@ -153,59 +180,9 @@ router.delete('/api/data', function(req, res) {
 });
 
 
-io.on('connection', function (socket) {
-    messages.forEach(function (data) {
-      socket.emit('message', data);
-    });
+ioCon.init(sockets, messages, async);
+io.on('connection', ioCon.onConnection);
 
-    sockets.push(socket);
-
-    socket.on('disconnect', function () {
-      sockets.splice(sockets.indexOf(socket), 1);
-      updateRoster();
-    });
-
-    socket.on('message', function (msg) {
-      var text = String(msg || '');
-
-      if (!text)
-        return;
-
-      socket.get('name', function (err, name) {
-        var data = {
-          name: name,
-          text: text
-        };
-
-        broadcast('message', data);
-        messages.push(data);
-      });
-    });
-
-    socket.on('identify', function (name) {
-      socket.set('name', String(name || 'Anonymous'), function (err) {
-        updateRoster();
-      });
-    });
-  });
-
-function updateRoster() {
-  async.map(
-    sockets,
-    function (socket, callback) {
-      socket.get('name', callback);
-    },
-    function (err, names) {
-      broadcast('roster', names);
-    }
-  );
-}
-
-function broadcast(event, data) {
-  sockets.forEach(function (socket) {
-    socket.emit(event, data);
-  });
-}
 
 server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
   var addr = server.address();
