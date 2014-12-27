@@ -61,17 +61,29 @@ var getIp = function getIp(req){
 var router = express();
 router.use(express.bodyParser());
 var server = http.createServer(router);
-/*
-var secureServer = https.createServer(router);
+
+
 
 var ssl = {
-    key: fs.readFileSync('./ssl/private.key', 'utf8'),
-    cert: fs.readFileSync('./ssl/domain.org.crt', 'utf8'),
+    key: fs.readFileSync('./ssl/f751b863e6d296be.crt', 'utf8'),
+    cert: fs.readFileSync('./ssl/f751b863e6d296be.crt', 'utf8'),
     ca: [fs.readFileSync('./ssl/bundle_01.crt', 'utf8'),
+         fs.readFileSync('./ssl/bundle_02.crt', 'utf8'),
          fs.readFileSync('./ssl/bundle_02.crt', 'utf8')]
 };
 
-*/
+var secureServer = null;
+var secureServerErr = null;
+
+try{
+    secureServer = https.createServer(ssl, router);
+}catch(err){
+    secureServerErr = err;
+    console.log('Error creating https server: ' + err);
+}
+
+
+
 var io = socketio.listen(server);
 //var secureIo = socketio.listen(secureServer);
 
@@ -99,7 +111,9 @@ router.use(express.static(publicdir));
 
 
 
-
+router.get('/api/secureServerErr', function(req, res) {
+	res.json(200, {secureServerErr:secureServerErr});
+});
 
 
 
@@ -200,12 +214,19 @@ server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
 });
 
 
-/*
-https.createServer(ssl, function(req, res) {
-    var addr = secureServer.address();
-    console.log("SSL available at", addr.address + ":" + addr.port);
-}).listen(443);
-*/
+if(secureServer != null){
+    try{
+    secureServer.listen(443);
+    }
+    catch(err){
+        if(secureServerErr != null){
+            secureServerErr = {secureServerErr:secureServerErr, innerErr:err}
+        }
+        else{
+            secureServerErr = err;
+        }
+    }
+}
 
 
 
