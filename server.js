@@ -3,34 +3,39 @@
 //
 // A simple chat server using Socket.IO, Express, and Async.
 //
+var publicdir = __dirname + '/client';
+
+var fs        = require('fs');
 var http = require('http');
+var https = require('https');
 var path = require('path');
 
 var async = require('async');
 var socketio = require('socket.io');
 var express = require('express');
+//var bcrypt = require('bcrypt');
+//var keyDel = require('key-del');
 
-
+var guid = require('./utils/guid.js');
 var strikeTemp = require('./beer/strikeTemp.js');
-
 var sha256 = require('./client/js/hashing/sha256/sha256.js');
 
-var chatSocketIOc9 = require('./client/app/chat.js');
-//var chatSocketIODoubleHash = require('./client/app/chat.js');
+//var chatSocketIOc9 = require('./client/app/chat.js');
+var bcryptPlusClientShaChat = require('./client/app/bcryptPlusClientShaChat.js');
 
-var ioCon = chatSocketIOc9;
+var socketIO_OnConnectionProvider = bcryptPlusClientShaChat;
 
-var bcrypt = require('bcrypt');
+var database = {};
 
-var passTheHashAuth = require('./auth/h3Auth.js');
+var socketIOConnectionData = {};
+socketIOConnectionData.async = async;
+socketIOConnectionData.guidFactory = guid;
+//socketIOConnectionData.keyDel = keyDel;
+
+socketIO_OnConnectionProvider.init(socketIOConnectionData);
+
 var monty = require('./monty/monty.js');
 
-var mysteryUserSalts = {};
-var userMysteryUserSalts = false;
-
-var authMaxTimeDifferenceInMiliSeconds = 1000;
-
-var systemSalt = "RANDOMIZE_THIS_VALUE_ON_PRODUCTION_SERVERS";
 
 //var getIp = require('ipware')().get_ip;
 var getIp = function getIp(req){
@@ -56,14 +61,24 @@ var getIp = function getIp(req){
 var router = express();
 router.use(express.bodyParser());
 var server = http.createServer(router);
+/*
+var secureServer = https.createServer(router);
+
+var ssl = {
+    key: fs.readFileSync('./ssl/private.key', 'utf8'),
+    cert: fs.readFileSync('./ssl/domain.org.crt', 'utf8'),
+    ca: [fs.readFileSync('./ssl/bundle_01.crt', 'utf8'),
+         fs.readFileSync('./ssl/bundle_02.crt', 'utf8')]
+};
+
+*/
 var io = socketio.listen(server);
+//var secureIo = socketio.listen(secureServer);
 
-//router.use(express.static(path.resolve(__dirname, 'client')));
+//
 
 
-var fs        = require('fs');
-var publicdir = __dirname + '/client';
-
+//This allows for navigation to html pages without the .html extension
 router.use(function(req, res, next) {
   if (req.path.indexOf('.') === -1) {
     var file = publicdir + req.path + '.html';
@@ -77,20 +92,16 @@ router.use(function(req, res, next) {
     next();
 });
 router.use(express.static(publicdir));
-
-
-var messages = [];
-var sockets = [];
-
-
-
-var database = {};
-var crawlerDatabase = {};
+//router.use(express.static(path.resolve(__dirname, 'client')));
 
 
 
 
-var guid = require('./utils/guid.js');
+
+
+
+
+
 
 router.get('/api/guid', function(req, res) {
 	res.json(200, {guid:guid.generate(req.query.useDashes)});
@@ -180,8 +191,7 @@ router.delete('/api/data', function(req, res) {
 });
 
 
-ioCon.init(sockets, messages, async);
-io.on('connection', ioCon.onConnection);
+io.on('connection', socketIO_OnConnectionProvider.onConnection);
 
 
 server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
@@ -189,6 +199,13 @@ server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
   console.log("Chat server listening at", addr.address + ":" + addr.port);
 });
 
+
+/*
+https.createServer(ssl, function(req, res) {
+    var addr = secureServer.address();
+    console.log("SSL available at", addr.address + ":" + addr.port);
+}).listen(443);
+*/
 
 
 
@@ -198,29 +215,32 @@ server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
 
 
 router.get('/api/getUserSalts', function(req, res) {
-    res.json(200, passTheHashAuth.getUserSalts(sha256, getIp(req).clientIp, req.query.userName, false, systemSalt));
+    var inputData = {};
+    inputData.userName = req.query.userName;
+    inputData.isClientCall = true;
+    res.json(200, socketIO_OnConnectionProvider.getUserSalts(inputData));
 });
 
 
+/*
 router.get('/api/auth', function(req, res) {
-    
-    
-    var auth = null;
-    
-    var youGotYourShitTogether = false;
-    
-    if(youGotYourShitTogether){
-        //TODO Implement auth that expects a plain text password here
-        auth = {};
-    }
-    else{
-        var somethingThatShouldntPassForAuth = passTheHashAuth.ingest(sha256, getIp(req).clientIp, req.query.userName, req.query.h3, req.query.date, authMaxTimeDifferenceInMiliSeconds);
-        auth = somethingThatShouldntPassForAuth;
-    }
-    
+    var auth = socketIO_OnConnectionProvider.authorize(req.query.userName, req.query.h3, req.query.date, authMaxTimeDifferenceInMiliSeconds);
 	res.json(200, auth);
 });
+*/
 
+router.post('/api/auth', function(req, res) {
+
+    var newGuid = guid.generate(true);
+    
+    var authData = JSON.parse(req.body.bodyvalue);
+    
+    var auth = socketIO_OnConnectionProvider.authorize(authData.userName, authData.h3);
+	res.json(200, auth);
+    
+    res.json(200, auth);
+	
+});
 
 
 

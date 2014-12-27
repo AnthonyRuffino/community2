@@ -42,13 +42,15 @@ var ChatServer = {};
 ChatServer.messages = null;
 ChatServer.sockets = null;
 ChatServer.async = null;
+ChatServer.messages = null;
+ChatServer.sockets = null;
 
 
-ChatServer.init = function(sockets, messages, async){
+ChatServer.init = function(data){
     console.log("Chat server initializing.");
-    ChatServer.sockets = sockets;
-    ChatServer.messages = messages;
-    ChatServer.async = async;
+    ChatServer.async = data.async;
+    ChatServer.messages = [];
+    ChatServer.sockets = [];
 };
 
 
