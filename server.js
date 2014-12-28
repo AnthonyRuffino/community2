@@ -5,10 +5,30 @@
 //
 var publicdir = __dirname + '/client';
 
+var removeTrailingHtml = true;
+
+var path = null;
+
+if(removeTrailingHtml === false){
+    path = require('path');
+}
+
+
+
 var fs        = require('fs');
 var http = require('http');
-var https = require('https');
-var path = require('path');
+
+var https = null;
+var useHttps = false;
+
+if(useHttps === true){
+    https = require('https');
+}
+
+
+
+
+
 
 var async = require('async');
 var socketio = require('socket.io');
@@ -18,7 +38,7 @@ var express = require('express');
 
 var guid = require('./utils/guid.js');
 var strikeTemp = require('./beer/strikeTemp.js');
-var sha256 = require('./client/js/hashing/sha256/sha256.js');
+//var sha256 = require('./client/js/hashing/sha256/sha256.js');
 
 //var chatSocketIOc9 = require('./client/app/chat.js');
 var bcryptPlusClientShaChat = require('./client/app/bcryptPlusClientShaChat.js');
@@ -47,7 +67,7 @@ var getIp = function getIp(req){
      var clientIp = {clientIp:ip};
      
      return clientIp;
-}
+};
 
 
 
@@ -60,79 +80,149 @@ var getIp = function getIp(req){
 //
 var router = express();
 router.use(express.bodyParser());
-var server = http.createServer(router);
 
-
-
-var ssl = {
-    key: fs.readFileSync('./ssl/f751b863e6d296be.crt', 'utf8'),
-    cert: fs.readFileSync('./ssl/f751b863e6d296be.crt', 'utf8'),
-    ca: [fs.readFileSync('./ssl/bundle_01.crt', 'utf8'),
-         fs.readFileSync('./ssl/bundle_02.crt', 'utf8'),
-         fs.readFileSync('./ssl/bundle_02.crt', 'utf8')]
-};
-
+var server = null;
 var secureServer = null;
+
+
 var secureServerErr = null;
 
-try{
+
+if(useHttps === true && https != null){
+   try{
+    
+    var ssl = {
+        key: fs.readFileSync('./ssl/domain-key.pem', 'utf8'),
+        cert: fs.readFileSync('./ssl/domain-crt.pem', 'utf8')
+    };
+    
+    if (fs.existsSync("./ssl/bundle.crt")) {
+        
+        var ca, cert, chain, line, _i, _len;
+
+        ca = [];
+    
+        chain = fs.readFileSync("./ssl/bundle.crt", 'utf8');
+    
+        chain = chain.split("\n");
+    
+        cert = [];
+    
+        for (_i = 0, _len = chain.length; _i < _len; _i++) {
+          line = chain[_i];
+            if (!(line.length !== 0)) {
+                continue;
+            }
+            
+            cert.push(line);
+            
+            if (line.match(/-END CERTIFICATE-/)) {
+              ca.push(cert.join("\n"));
+              cert = [];
+            }
+        }
+    
+        ssl.ca = ca;
+    }
+
     secureServer = https.createServer(ssl, router);
-}catch(err){
-    secureServerErr = err;
-    console.log('Error creating https server: ' + err);
+
+    }catch(err){
+        secureServerErr = "Err1: " + err;
+        console.log('Error creating https server: ' + err);
+    } 
 }
 
 
+//////////////////////////
+//BEGIN SOCKET IO SETUP///
+//////////////////////////
+if(useHttps === true && secureServer != null){
+    socketio.listen(secureServer).on('connection', socketIO_OnConnectionProvider.onConnection);
+}
+else{
+    if(server === undefined || server === null){
+        server = http.createServer(router);
+    }
+    socketio.listen(server).on('connection', socketIO_OnConnectionProvider.onConnection);
+}
+//////////////////////////
+//END SOCKET IO SETUP///
+//////////////////////////
 
-var io = socketio.listen(server);
-//var secureIo = socketio.listen(secureServer);
-
-//
 
 
+//////////////////////////
+//BEGIN MIDDLEWARE///
+//////////////////////////
 //This allows for navigation to html pages without the .html extension
-router.use(function(req, res, next) {
-  if (req.path.indexOf('.') === -1) {
-    var file = publicdir + req.path + '.html';
-    fs.exists(file, function(exists) {
-      if (exists)
-        req.url += '.html';
-      next();
+if(removeTrailingHtml === true || (path === undefined || path === null)){
+    router.use(function(req, res, next) {
+        if (req.path.indexOf('.') === -1) {
+            var file = publicdir + req.path + '.html';
+            fs.exists(file, function(exists) {
+              if (exists)
+                req.url += '.html';
+              next();
+            });
+        }
+        else{
+           next(); 
+        }
     });
-  }
-  else
-    next();
+    router.use(express.static(publicdir));
+}else{
+    router.use(express.static(path.resolve(__dirname, 'client')));
+}
+//////////////////////////
+//END MIDDLEWARE///
+//////////////////////////
+
+
+
+router.get('/api/getUserSalts', function(req, res) {
+    var inputData = {};
+    inputData.userName = req.query.userName;
+    inputData.isClientCall = true;
+    res.json(200, socketIO_OnConnectionProvider.getUserSalts(inputData));
 });
-router.use(express.static(publicdir));
-//router.use(express.static(path.resolve(__dirname, 'client')));
+
+router.post('/api/auth', function(req, res) {
+
+    var newGuid = guid.generate(true);
+    
+    var authData = JSON.parse(req.body.bodyvalue);
+    
+    var auth = socketIO_OnConnectionProvider.authorize(authData.userName, authData.h3);
+    res.json(200, auth);
+    
+    res.json(200, auth);
+    
+});
+
+router.get('/api/montyStats', function(req, res) {
+    res.json(200, monty.getMontyStats(req.query.players, req.query.games));
+});
 
 
-
-
-
+router.get('/api/playMontyGame', function(req, res) {
+    res.json(200, monty.playMontyGame(req.query.doorNumber,req.query.doSwitch));
+});
 
 router.get('/api/secureServerErr', function(req, res) {
-	res.json(200, {secureServerErr:secureServerErr});
+    res.json(200, {secureServerErr:secureServerErr});
 });
-
-
 
 router.get('/api/guid', function(req, res) {
-	res.json(200, {guid:guid.generate(req.query.useDashes)});
+    res.json(200, {guid:guid.generate(req.query.useDashes)});
 });
 
-
-
-
-
-
-
 router.get('/api/beer/striketemp', function(req, res) {
-	res.json(200, strikeTemp.calc(req.query.quarts, req.query.lbs, req.query.t1, req.query.t2));
+    res.json(200, strikeTemp.calc(req.query.quarts, req.query.lbs, req.query.t1, req.query.t2));
 });
 
 router.get('/api/beer', function(req, res) {
-	res.json(200, { Message: 'Drink Beer' });
+    res.json(200, { Message: 'Drink Beer' });
 });
 
 router.get('/api/data', function(req, res) {
@@ -141,7 +231,7 @@ router.get('/api/data', function(req, res) {
     
     
     if(database[key] === undefined){
-        res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now!"});	
+        res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now!"});    
     }
     else{
         if(id === undefined){
@@ -160,8 +250,6 @@ router.get('/api/data', function(req, res) {
     }
 });
 
-
-
 router.post('/api/data', function(req, res) {
     var key = req.query.key;
     if(database[key] === undefined){
@@ -172,9 +260,8 @@ router.post('/api/data', function(req, res) {
     database[key][newGuid] = JSON.parse(req.body.bodyvalue);
     
     res.json(200, { id: newGuid });
-	
+    
 });
-
 
 router.delete('/api/data', function(req, res) {
     var key = req.query.key;
@@ -189,7 +276,7 @@ router.delete('/api/data', function(req, res) {
     else{
     
         if(database[key] === undefined){
-            res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now."});	
+            res.json(404, { Message: "No datasource named [" + key + "] was found.  Start it now."});    
         }
         else{
             
@@ -205,27 +292,59 @@ router.delete('/api/data', function(req, res) {
 });
 
 
-io.on('connection', socketIO_OnConnectionProvider.onConnection);
 
 
-server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
-  var addr = server.address();
-  console.log("Chat server listening at", addr.address + ":" + addr.port);
-});
+
+
 
 
 if(secureServer != null){
+    
+    
     try{
-    secureServer.listen(443);
+        secureServer.listen(443);
     }
-    catch(err){
-        if(secureServerErr != null){
-            secureServerErr = {secureServerErr:secureServerErr, innerErr:err}
-        }
-        else{
-            secureServerErr = err;
-        }
+    catch(err2){
+       secureServerErr = "Err: " + err2;
     }
+    
+    try{
+        // Secondary http app
+        var httpApp = express();
+
+        var httpRouter = express.Router();
+        
+        httpApp.use('*', httpRouter);
+        
+        httpRouter.get('*', function(req, res){
+            var host = req.get('Host');
+            // replace the port in the host
+            host = host.replace(/:\d+$/, ":"+secureServer.get('port'));
+            // determine the redirect destination
+            var destination = ['https://', host, req.url].join('');
+            return res.redirect(destination);
+        });
+        
+        var httpServer = http.createServer(httpApp);
+        
+        httpServer.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
+            var addr = httpServer.address();
+            console.log("Http to Https redirect listening at", addr.address + ":" + addr.port);
+        });
+    }
+    catch(err2){
+       //TODO
+    }
+}else{
+    
+    if(server === undefined || server === null){
+        server = http.createServer(router);
+    }
+    
+    server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
+        var addr = server.address();
+        console.log("Chat server listening at", addr.address + ":" + addr.port);
+    });
 }
 
 
@@ -235,41 +354,3 @@ if(secureServer != null){
 
 
 
-router.get('/api/getUserSalts', function(req, res) {
-    var inputData = {};
-    inputData.userName = req.query.userName;
-    inputData.isClientCall = true;
-    res.json(200, socketIO_OnConnectionProvider.getUserSalts(inputData));
-});
-
-
-/*
-router.get('/api/auth', function(req, res) {
-    var auth = socketIO_OnConnectionProvider.authorize(req.query.userName, req.query.h3, req.query.date, authMaxTimeDifferenceInMiliSeconds);
-	res.json(200, auth);
-});
-*/
-
-router.post('/api/auth', function(req, res) {
-
-    var newGuid = guid.generate(true);
-    
-    var authData = JSON.parse(req.body.bodyvalue);
-    
-    var auth = socketIO_OnConnectionProvider.authorize(authData.userName, authData.h3);
-	res.json(200, auth);
-    
-    res.json(200, auth);
-	
-});
-
-
-
-router.get('/api/montyStats', function(req, res) {
-    res.json(200, monty.getMontyStats(req.query.players, req.query.games));
-});
-
-
-router.get('/api/playMontyGame', function(req, res) {
-	res.json(200, monty.playMontyGame(req.query.doorNumber,req.query.doSwitch));
-});
