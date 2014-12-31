@@ -322,7 +322,7 @@ router.delete('/api/data', function(req, res) {
 if(secureServer != null){
     try{
         secureServer.listen(process.env.SECURE_PORT || 443, process.env.SECURE_IP || "0.0.0.0", function(){
-            var addr = server.address();
+            var addr = secureServer.address();
             console.log("Secure server listening at", addr.address + ":" + addr.port);
         });
     }
