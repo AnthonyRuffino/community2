@@ -94,8 +94,13 @@ if(useHttps === true && https != null){
    try{
        
        var sslKeyFile = process.env.sslKeyFile || './ssl/domain-key.pem';
+       console.log('sslKeyFile: ' + sslKeyFile);
+       
        var sslDomainCertFile = process.env.sslDomainCertFile || './ssl/domain.org.crt';
+       console.log('sslDomainCertFile: ' + sslDomainCertFile);
+       
        var sslCaBundleFile = process.env.ssCaBundleFile || './ssl/bundle.crt';
+       console.log('sslCaBundleFile: ' + sslCaBundleFile);
        
        var certFileEncoding = 'utf8';
        
@@ -106,6 +111,7 @@ if(useHttps === true && https != null){
         };
         
         if (fs.existsSync(sslCaBundleFile)) {
+            console.log('sslCaBundleFile found.');
             
             var ca, cert, chain, line, _i, _len;
         
@@ -329,7 +335,8 @@ if(secureServer != null){
         });
     }
     catch(err2){
-       secureServerErr = "Err: " + err2;
+        console.log("Err: " + err2);
+        secureServerErr = "Err: " + err2;
     }
 }
 
