@@ -19,14 +19,16 @@ var fs        = require('fs');
 var http = require('http');
 
 var https = null;
-var useHttps = process.env.useHttps || false;
+var useHttpsTemp = process.env.useHttps || null;
+var useHttps = false;
 
-if(useHttps === true){
+if(useHttpsTemp !== undefined && useHttpsTemp!= null && (useHttpsTemp === true || useHttpsTemp.toLowerCase() =='true')){
+    console.log('useHttps was set to true.');
+    useHttps = true;
     https = require('https');
+}else{
+    console.log('useHttps was not set to true.');
 }
-
-
-
 
 
 
