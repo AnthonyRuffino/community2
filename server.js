@@ -104,43 +104,51 @@ if(useHttps === true && https != null){
        
        var certFileEncoding = 'utf8';
        
-       
-       var ssl = {
-            key: fs.readFileSync(sslKeyFile, certFileEncoding),
-            cert: fs.readFileSync(sslDomainCertFile, certFileEncoding)
-        };
-        
-        if (fs.existsSync(sslCaBundleFile)) {
-            console.log('sslCaBundleFile found.');
+       if (fs.existsSync(sslKeyFile) === false) {
+           console.log('sslKeyFile  was not found!');
+       }else if (fs.existsSync(sslDomainCertFile) === false) {
+           console.log('sslDomainCertFile  was not found!');
+       }
+       else{
+           var ssl = {
+                key: fs.readFileSync(sslKeyFile, certFileEncoding),
+                cert: fs.readFileSync(sslDomainCertFile, certFileEncoding)
+            };
             
-            var ca, cert, chain, line, _i, _len;
-        
-            ca = [];
-        
-            chain = fs.readFileSync(sslCaBundleFile, certFileEncoding);
-        
-            chain = chain.split("\n");
-        
-            cert = [];
-        
-            for (_i = 0, _len = chain.length; _i < _len; _i++) {
-              line = chain[_i];
-                if (!(line.length !== 0)) {
-                    continue;
-                }
+            if (fs.existsSync(sslCaBundleFile)) {
+                console.log('sslCaBundleFile found.');
                 
-                cert.push(line);
-                
-                if (line.match(/-END CERTIFICATE-/)) {
-                  ca.push(cert.join("\n"));
-                  cert = [];
+                var ca, cert, chain, line, _i, _len;
+            
+                ca = [];
+            
+                chain = fs.readFileSync(sslCaBundleFile, certFileEncoding);
+            
+                chain = chain.split("\n");
+            
+                cert = [];
+            
+                for (_i = 0, _len = chain.length; _i < _len; _i++) {
+                  line = chain[_i];
+                    if (!(line.length !== 0)) {
+                        continue;
+                    }
+                    
+                    cert.push(line);
+                    
+                    if (line.match(/-END CERTIFICATE-/)) {
+                      ca.push(cert.join("\n"));
+                      cert = [];
+                    }
                 }
+            
+                ssl.ca = ca;
             }
-        
-            ssl.ca = ca;
-        }
-        
-        secureServer = https.createServer(ssl, router);
+            
+            secureServer = https.createServer(ssl, router);
+            console.log('secureServer created');
+       }
+       
 
     }catch(err){
         secureServerErr = "Err1: " + err;
@@ -342,7 +350,7 @@ if(secureServer != null){
 
 
 if(server === undefined || server === null){
-    server = http.createServer(router);
+    server = http.createServer(router);`
 }
 
 //HTTP
