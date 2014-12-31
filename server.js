@@ -19,7 +19,7 @@ var fs        = require('fs');
 var http = require('http');
 
 var https = null;
-var useHttps = false;
+var useHttps = process.env.useHttps || false;
 
 if(useHttps === true){
     https = require('https');
@@ -90,42 +90,49 @@ var secureServerErr = null;
 
 if(useHttps === true && https != null){
    try{
-    
-    var ssl = {
-        key: fs.readFileSync('./ssl/domain-key.pem', 'utf8'),
-        cert: fs.readFileSync('./ssl/domain-crt.pem', 'utf8')
-    };
-    
-    if (fs.existsSync("./ssl/bundle.crt")) {
+       
+       var sslKeyFile = process.env.sslKeyFile || './ssl/domain-key.pem';
+       var sslDomainCertFile = process.env.sslDomainCertFile || './ssl/domain.org.crt';
+       var sslCaBundleFile = process.env.ssCaBundleFile || './ssl/bundle.crt';
+       
+       var certFileEncoding = 'utf8';
+       
+       
+       var ssl = {
+            key: fs.readFileSync(sslKeyFile, certFileEncoding),
+            cert: fs.readFileSync(sslDomainCertFile, certFileEncoding)
+        };
         
-        var ca, cert, chain, line, _i, _len;
-
-        ca = [];
-    
-        chain = fs.readFileSync("./ssl/bundle.crt", 'utf8');
-    
-        chain = chain.split("\n");
-    
-        cert = [];
-    
-        for (_i = 0, _len = chain.length; _i < _len; _i++) {
-          line = chain[_i];
-            if (!(line.length !== 0)) {
-                continue;
-            }
+        if (fs.existsSync(sslCaBundleFile)) {
             
-            cert.push(line);
-            
-            if (line.match(/-END CERTIFICATE-/)) {
-              ca.push(cert.join("\n"));
-              cert = [];
+            var ca, cert, chain, line, _i, _len;
+        
+            ca = [];
+        
+            chain = fs.readFileSync(sslCaBundleFile, certFileEncoding);
+        
+            chain = chain.split("\n");
+        
+            cert = [];
+        
+            for (_i = 0, _len = chain.length; _i < _len; _i++) {
+              line = chain[_i];
+                if (!(line.length !== 0)) {
+                    continue;
+                }
+                
+                cert.push(line);
+                
+                if (line.match(/-END CERTIFICATE-/)) {
+                  ca.push(cert.join("\n"));
+                  cert = [];
+                }
             }
+        
+            ssl.ca = ca;
         }
-    
-        ssl.ca = ca;
-    }
-
-    secureServer = https.createServer(ssl, router);
+        
+        secureServer = https.createServer(ssl, router);
 
     }catch(err){
         secureServerErr = "Err1: " + err;
@@ -178,6 +185,17 @@ if(removeTrailingHtml === true || (path === undefined || path === null)){
 //END MIDDLEWARE///
 //////////////////////////
 
+
+
+
+////////////////////////////
+//BEGIN CONTROLLER ROUTES///
+////////////////////////////
+router.get('/api/secret', function(req, res) {
+    var secret = process.env.SECRET;
+    var secret2 = process.env.SECRET2;
+    res.json(200, {secret:secret,secret2:secret2});
+});
 
 
 router.get('/api/getUserSalts', function(req, res) {
@@ -290,67 +308,36 @@ router.delete('/api/data', function(req, res) {
         }
     }
 });
+//////////////////////////
+//END CONTROLLER ROUTES///
+//////////////////////////
 
 
 
+//////////////////////////
+//START UP SERVER(S)//////
+//////////////////////////
 
-
-
-
-
+//HTTPS
 if(secureServer != null){
-    
-    
     try{
-        secureServer.listen(443);
+        secureServer.listen(process.env.PORT || 443, process.env.SECURE_IP || "0.0.0.0", function(){
+            var addr = server.address();
+            console.log("Secure server listening at", addr.address + ":" + addr.port);
+        });
     }
     catch(err2){
        secureServerErr = "Err: " + err2;
     }
-    
-    try{
-        // Secondary http app
-        var httpApp = express();
-
-        var httpRouter = express.Router();
-        
-        httpApp.use('*', httpRouter);
-        
-        httpRouter.get('*', function(req, res){
-            var host = req.get('Host');
-            // replace the port in the host
-            host = host.replace(/:\d+$/, ":"+secureServer.get('port'));
-            // determine the redirect destination
-            var destination = ['https://', host, req.url].join('');
-            return res.redirect(destination);
-        });
-        
-        var httpServer = http.createServer(httpApp);
-        
-        httpServer.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
-            var addr = httpServer.address();
-            console.log("Http to Https redirect listening at", addr.address + ":" + addr.port);
-        });
-    }
-    catch(err2){
-       //TODO
-    }
-}else{
-    
-    if(server === undefined || server === null){
-        server = http.createServer(router);
-    }
-    
-    server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
-        var addr = server.address();
-        console.log("Chat server listening at", addr.address + ":" + addr.port);
-    });
 }
 
 
+if(server === undefined || server === null){
+    server = http.createServer(router);
+}
 
-
-
-
-
-
+//HTTP
+server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
+    var addr = server.address();
+    console.log("HTTP server listening at", addr.address + ":" + addr.port);
+});
