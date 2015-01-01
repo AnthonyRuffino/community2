@@ -244,7 +244,7 @@ router.get('/api/playMontyGame', function(req, res) {
 });
 
 router.get('/api/secureServerErr', function(req, res) {
-    res.json(200, {secureServerErr:secureServerErr useHttps:useHttps});
+    res.json(200, {secureServerErr:secureServerErr, useHttps:useHttps});
 });
 
 router.get('/api/guid', function(req, res) {
