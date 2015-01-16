@@ -40,7 +40,11 @@ var express = require('express');
 
 var guid = require('./utils/guid.js');
 var strikeTemp = require('./beer/strikeTemp.js');
-//var sha256 = require('./client/js/hashing/sha256/sha256.js');
+
+var mapplied = require('./utils/mapplied.js');
+var sha256 = require('./client/js/hashing/sha256/sha256.js');
+
+mapplied.init(sha256, guid);
 
 //var chatSocketIOc9 = require('./client/app/chat.js');
 var bcryptPlusClientShaChat = require('./client/app/bcryptPlusClientShaChat.js');
@@ -324,6 +328,34 @@ router.delete('/api/data', function(req, res) {
         }
     }
 });
+
+
+
+
+
+/////////////
+//Universe
+/////////////
+router.get('/mapplied/getUniverse', function(req, res) {
+    res.json(200, mapplied.getUniverse());
+});
+
+router.get('/mapplied/getQuadrant', function(req, res) {
+    res.json(200, mapplied.getQuadrant(req.query));
+});
+
+router.get('/mapplied/setHorizontalLinearMultiplier', function(req, res) {
+    res.json(200, mapplied.setHorizontalLinearMultiplier(req.query.val));
+});
+
+
+
+
+
+
+
+
+
 //////////////////////////
 //END CONTROLLER ROUTES///
 //////////////////////////
