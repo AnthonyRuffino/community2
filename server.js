@@ -49,6 +49,12 @@ mapplied.init(sha256, guid);
 //var chatSocketIOc9 = require('./client/app/chat.js');
 var bcryptPlusClientShaChat = require('./client/app/bcryptPlusClientShaChat.js');
 
+var mathersCallLogger = require('./client/app/mathersCallLogger.js');
+var socketIO_CallLogger = bcryptPlusClientShaChat;
+var mathersCallLoggerConnectionData = {};
+mathersCallLoggerConnectionData.async = async
+socketIO_CallLogger.init(mathersCallLoggerConnectionData);
+
 var socketIO_OnConnectionProvider = bcryptPlusClientShaChat;
 
 var database = {};
@@ -165,7 +171,7 @@ if(useHttps === true && https != null){
 //BEGIN SOCKET IO SETUP///
 //////////////////////////
 if(useHttps === true && secureServer != null){
-    socketio.listen(secureServer).on('connection', socketIO_OnConnectionProvider.onConnection);
+    socketio.listen(secureServer).on('connection', mathersCallLogger.onConnection);
 }
 else{
     if(server === undefined || server === null){
