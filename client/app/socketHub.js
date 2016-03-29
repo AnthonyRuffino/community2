@@ -38,6 +38,7 @@ SocketServer.onConnection = function (socket) {
       
     });
     
+    /*
     if(SocketServer.children !== undefined && SocketServer.children !== null){
       SocketServer.children.forEach(function (child) {
         if(child.onDisconnection !== undefined){
@@ -45,6 +46,7 @@ SocketServer.onConnection = function (socket) {
         }
       });
     }
+    */
     
 };
     
