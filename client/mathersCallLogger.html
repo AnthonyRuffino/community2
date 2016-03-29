@@ -72,6 +72,34 @@
                   </div>
                 </div>
               </div>
+              
+              <br/>
+              <h3>Recent Logs</h2>
+              <div class="row">
+                <div class="span9">
+                  <div class="row controls">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th class="span2">Date And Time</th>
+                          <th class="span7">Insurance Type</th>
+                          <th class="span7">Appointment Reason</th>
+                          <th class="span7">Scheduling Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="log in logs">
+                          <td class="span2" ng-bind="log.dateTime"></td>
+                          <td class="span7" ng-bind="log.insuranceType"></td>
+                          <td class="span7" ng-bind="log.appointmentReason"></td>
+                          <td class="span7" ng-bind="log.schedulingStatus"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              
             </div>
         </section>
     </div>
