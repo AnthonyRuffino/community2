@@ -32,7 +32,9 @@ SocketServer.onConnection = function (socket) {
       
       if(SocketServer.children !== undefined && SocketServer.children !== null){
         SocketServer.children.forEach(function (child) {
-          child.init(SocketServer);
+          if(child.onDisconnection !== undefined){
+            child.onDisconnection(SocketServer.sockets);
+          }
         });
       }
       
@@ -40,9 +42,7 @@ SocketServer.onConnection = function (socket) {
     
     if(SocketServer.children !== undefined && SocketServer.children !== null){
       SocketServer.children.forEach(function (child) {
-        if(child.onDisconnection !== undefined){
-          child.onDisconnection(SocketServer.sockets);
-        }
+        child.onConnection(socket);
       });
     }
     
