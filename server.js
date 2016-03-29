@@ -48,13 +48,12 @@ mapplied.init(sha256, guid);
 
 //var chatSocketIOc9 = require('./client/app/chat.js');
 var mathersCallLogger = require('./client/app/mathersCallLogger.js');
-
+var socketIO_OnConnectionProvider = mathersCallLogger;
 
 var socketIOconnectionData = {};
 socketIOconnectionData.async = async
 
-var socketIO_CallLogger = mathersCallLogger;
-socketIO_CallLogger.init(socketIOconnectionData);
+socketIO_OnConnectionProvider.init(socketIOconnectionData);
 
 
 var database = {};
@@ -165,13 +164,13 @@ if(useHttps === true && https != null){
 //BEGIN SOCKET IO SETUP///
 //////////////////////////
 if(useHttps === true && secureServer != null){
-    socketio.listen(secureServer).on('connection', socketIO_CallLogger.onConnection);
+    socketio.listen(secureServer).on('connection', socketIO_OnConnectionProvider.onConnection);
 }
 else{
     if(server === undefined || server === null){
         server = http.createServer(router);
     }
-    socketio.listen(server).on('connection', socketIO_CallLogger.onConnection);
+    socketio.listen(server).on('connection', socketIO_OnConnectionProvider.onConnection);
 }
 //////////////////////////
 //END SOCKET IO SETUP///
