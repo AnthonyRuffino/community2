@@ -87,7 +87,7 @@ ChatterServer.onConnection = function (socket) {
     socket.on('chatter.identify', function (name) {
         console.log("IDENTIFY: " + name);
       socket.set('chatter.name', String(name || 'Anonymous'), function (err) {
-        updateRoster();
+        updateRoster(ChatterServer.socketHub.sockets);
       });
     });
 };
