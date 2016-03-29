@@ -58,6 +58,7 @@ function CallLogController($scope, $http) {
 ////////////////////////////
 var CallLogServer = {};
 CallLogServer.async = null;
+CallLogServer.guid = null;
 CallLogServer.logs = null;
 CallLogServer.socketHub = null;
 CallLogServer.fs = null;
@@ -71,13 +72,14 @@ CallLogServer.realm = null;
 CallLogServer.init = function(data){
     console.log("Call Logger server initializing.");
     CallLogServer.async = data.async;
+    CallLogServer.guid = data.guid;
     CallLogServer.realm = data.realm;
     CallLogServer.logs = [];
     CallLogServer.socketHub = data.socketHub;
     CallLogServer.fs = data.fs;
     CallLogServer.mkpath = data.mkpath;
-    CallLogServer.mkpath = data.path;
-    CallLogServer.dirname = data.dirname;
+    CallLogServer.path = data.path;
+    CallLogServer.dirname = "/tmp/ssl/";
 };
 
 
@@ -95,10 +97,13 @@ CallLogServer.onConnection = function (socket) {
             var date = new Date();
             log.dateTime = getDateTime(date);
             
+            var id = CallLogServer.guid.generate(true,2);
+            log.id = id;
+            
             var dateString = getDate(date);
             
-            
-            
+            var strJson = JSON.stringify(log, null, 4); 
+            mkfile(CallLogServer.dirname + dateString + "/" + id + ".json",strJson);
                 
             broadcast('calllog-log', log);
             CallLogServer.logs.push(log);
@@ -157,12 +162,13 @@ function getDate(date) {
 
 
 // You probably want to pass in a callback to this function to send back errors, normally
-var mkfile = function (filepath) {
+var mkfile = function (filepath, data) {
+    console.log("Saving file: " + filepath);
     CallLogServer.mkpath(CallLogServer.path.dirname(filepath), function (err) {
         if (err) {
             console.log(err);
         } else {
-            CallLogServer.fs.writeFile(filepath, "Hey there!", function(err) {
+            CallLogServer.fs.writeFile(filepath, data, function(err) {
                 if(err) {
                     console.log(err);
                 } else {
