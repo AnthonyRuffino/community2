@@ -50,26 +50,30 @@
                   <table class="table table-striped table-bordered">
                     <thead>
                       <tr>
-                        <th class="span2">Field1</th>
-                        <th class="span7">Field2</th>
-                        <th class="span7">Field3</th>
+                        <th class="span2">Date and Time</th>
+                        <th class="span7">Insurace Type</th>
+                        <th class="span7">Appointment Reason</th>
+                        <th class="span7">Scheduling Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr ng-repeat="log in logs">
-                        <td class="span2" ng-bind="log.field1"></td>
-                        <td class="span7" ng-bind="log.field2"></td>
-                        <td class="span7" ng-bind="log.field3"></td>
+                        <td class="span2" ng-bind="log.dateTime"></td>
+                        <td class="span7" ng-bind="log.insuranceType"></td>
+                        <td class="span7" ng-bind="log.appointmentReason"></td>
+                        <td class="span7" ng-bind="log.schedulingStatus"></td>
                       </tr>
                     </tbody>
                   </table>
                   <div class="row controls">
                     <form ng-submit="send()">
                       <div class="input-append span7">
-                        <input type="text" class="span6" ng-model="field1" placeholder="Field1">
-                        <input type="text" class="span6" ng-model="field2" placeholder="Field2">
-                        <input type="text" class="span6" ng-model="field3" placeholder="Field3">
-                        <input type="submit" class="span1 btn btn-primary" value="Send" ng-disabled="!field1">
+                        Insurance Type <select data-ng-options="i.name for i in insuranceTypes" data-ng-model="selectedInsuranceTypeOption"></select>
+                        <br/>
+                        Appointment Reason <select data-ng-options="r.name for r in appointmentReasons" data-ng-model="selectedAppointmentReasonOption"></select>
+                        <br/>
+                        Scheduling Status <select data-ng-options="s.name for s in schedulingStatuses" data-ng-model="selectedSchedulingStatusOption"></select>
+                        <input type="submit" class="span1 btn btn-primary" value="Log Call" ng-disabled="!field1">
                       </div>
                     </form>
                   </div>
