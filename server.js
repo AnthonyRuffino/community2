@@ -47,18 +47,22 @@ var sha256 = require('./client/js/hashing/sha256/sha256.js');
 mapplied.init(sha256, guid);
 
 //var chatSocketIOc9 = require('./client/app/chat.js');
-var bcryptPlusClientShaChat = require('./client/app/bcryptPlusClientShaChat.js');
+var socketHub = require('./client/app/socketHub.js');
+var callLogger = require('./client/app/callLogger.js');
+var chatter = require('./client/app/chatter.js');
+var socketIO_OnConnectionProvider = socketHub;
 
-var socketIO_OnConnectionProvider = bcryptPlusClientShaChat;
+var socketIOconnectionData = {};
+socketIOconnectionData.async = async;
+socketIOconnectionData.children = [];
+socketIOconnectionData.children.push(callLogger);
+socketIOconnectionData.children.push(chatter);
+
+socketIO_OnConnectionProvider.init(socketIOconnectionData);
+
 
 var database = {};
 
-var socketIOConnectionData = {};
-socketIOConnectionData.async = async;
-socketIOConnectionData.guidFactory = guid;
-//socketIOConnectionData.keyDel = keyDel;
-
-socketIO_OnConnectionProvider.init(socketIOConnectionData);
 
 var monty = require('./monty/monty.js');
 
@@ -217,26 +221,6 @@ router.get('/api/secret', function(req, res) {
     res.json(200, {secret:secret,secret2:secret2});
 });
 
-
-router.get('/api/getUserSalts', function(req, res) {
-    var inputData = {};
-    inputData.userName = req.query.userName;
-    inputData.isClientCall = true;
-    res.json(200, socketIO_OnConnectionProvider.getUserSalts(inputData));
-});
-
-router.post('/api/auth', function(req, res) {
-
-    var newGuid = guid.generate(true);
-    
-    var authData = JSON.parse(req.body.bodyvalue);
-    
-    var auth = socketIO_OnConnectionProvider.authorize(authData.userName, authData.h3);
-    res.json(200, auth);
-    
-    res.json(200, auth);
-    
-});
 
 router.get('/api/montyStats', function(req, res) {
     res.json(200, monty.getMontyStats(req.query.players, req.query.games));
