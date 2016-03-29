@@ -54,15 +54,12 @@ ChatterServer.init = function(data){
 };
 
 
-ChatterServer.onDisconnection = function (socket) {
-    updateRoster();
+ChatterServer.onDisconnection = function (sockets) {
+    updateRoster(sockets);
 }
 
 ChatterServer.onConnection = function (socket) {
     console.log("Chat server connection.");
-    
-
-    ChatterServer.sockets.push(socket);
     
     socket.on('chatter.get-messages', function () {
         ChatterServer.messages.forEach(function (data) {
@@ -95,9 +92,9 @@ ChatterServer.onConnection = function (socket) {
     });
 };
     
-function updateRoster() {
+function updateRoster(sockets) {
   ChatterServer.async.map(
-    ChatterServer.socketHub.sockets,
+    sockets,
     function (socket, callback) {
       socket.get('chatter.name', callback);
     },

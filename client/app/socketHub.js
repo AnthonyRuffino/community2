@@ -38,20 +38,18 @@ SocketServer.onConnection = function (socket) {
       
     });
     
-    /*
     if(SocketServer.children !== undefined && SocketServer.children !== null){
       SocketServer.children.forEach(function (child) {
         if(child.onDisconnection !== undefined){
-          child.onDisconnection(socket);
+          child.onDisconnection(SocketServer.sockets);
         }
       });
     }
-    */
     
 };
     
 
-function broadcast(event, data) {
+SocketServer.broadcast = function(event, data) {
   SocketServer.sockets.forEach(function (socket) {
     socket.emit(event, data);
   });
