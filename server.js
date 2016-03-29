@@ -47,13 +47,14 @@ var sha256 = require('./client/js/hashing/sha256/sha256.js');
 mapplied.init(sha256, guid);
 
 //var chatSocketIOc9 = require('./client/app/chat.js');
-var bcryptPlusClientShaChat = require('./client/app/bcryptPlusClientShaChat.js');
-
 var mathersCallLogger = require('./client/app/mathersCallLogger.js');
-var socketIO_CallLogger = bcryptPlusClientShaChat;
-var mathersCallLoggerConnectionData = {};
-mathersCallLoggerConnectionData.async = async
-socketIO_CallLogger.init(mathersCallLoggerConnectionData);
+
+
+var socketIOconnectionData = {};
+socketIOconnectionData.async = async
+
+var socketIO_CallLogger = mathersCallLogger;
+socketIO_CallLogger.init(socketIOconnectionData);
 
 
 var database = {};
