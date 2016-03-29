@@ -55,16 +55,9 @@ var mathersCallLoggerConnectionData = {};
 mathersCallLoggerConnectionData.async = async
 socketIO_CallLogger.init(mathersCallLoggerConnectionData);
 
-var socketIO_OnConnectionProvider = bcryptPlusClientShaChat;
 
 var database = {};
 
-var socketIOConnectionData = {};
-socketIOConnectionData.async = async;
-socketIOConnectionData.guidFactory = guid;
-//socketIOConnectionData.keyDel = keyDel;
-
-socketIO_OnConnectionProvider.init(socketIOConnectionData);
 
 var monty = require('./monty/monty.js');
 
@@ -171,13 +164,13 @@ if(useHttps === true && https != null){
 //BEGIN SOCKET IO SETUP///
 //////////////////////////
 if(useHttps === true && secureServer != null){
-    socketio.listen(secureServer).on('connection', mathersCallLogger.onConnection);
+    socketio.listen(secureServer).on('connection', socketIO_CallLogger.onConnection);
 }
 else{
     if(server === undefined || server === null){
         server = http.createServer(router);
     }
-    socketio.listen(server).on('connection', socketIO_OnConnectionProvider.onConnection);
+    socketio.listen(server).on('connection', socketIO_CallLogger.onConnection);
 }
 //////////////////////////
 //END SOCKET IO SETUP///
@@ -223,26 +216,6 @@ router.get('/api/secret', function(req, res) {
     res.json(200, {secret:secret,secret2:secret2});
 });
 
-
-router.get('/api/getUserSalts', function(req, res) {
-    var inputData = {};
-    inputData.userName = req.query.userName;
-    inputData.isClientCall = true;
-    res.json(200, socketIO_OnConnectionProvider.getUserSalts(inputData));
-});
-
-router.post('/api/auth', function(req, res) {
-
-    var newGuid = guid.generate(true);
-    
-    var authData = JSON.parse(req.body.bodyvalue);
-    
-    var auth = socketIO_OnConnectionProvider.authorize(authData.userName, authData.h3);
-    res.json(200, auth);
-    
-    res.json(200, auth);
-    
-});
 
 router.get('/api/montyStats', function(req, res) {
     res.json(200, monty.getMontyStats(req.query.players, req.query.games));

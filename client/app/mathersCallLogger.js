@@ -22,11 +22,11 @@ function ChatController($scope, $http) {
     });
     
     $scope.send = function send() {
-        var data = {};
-        data.field1 = $scope.field1;
-        data.field2 = $scope.field2;
-        data.field3 = $scope.field3;
-        socket.emit('log', data);
+        var log = {};
+        log.field1 = $scope.field1;
+        log.field2 = $scope.field2;
+        log.field3 = $scope.field3;
+        socket.emit('log', log);
         $scope.field1 = '';
         $scope.field2 = '';
         $scope.field3 = '';
@@ -40,8 +40,6 @@ function ChatController($scope, $http) {
 ////////////////////////////
 var ChatServer = {};
 ChatServer.async = null;
-//ChatServer.deleteKey = null;
-ChatServer.guidFactory = null;
 
 ChatServer.logs = null;
 ChatServer.sockets = null;
@@ -62,28 +60,28 @@ ChatServer.init = function(data){
 ChatServer.onConnection = function (socket) {
     console.log("Call Logger server connection.");
     
+    ChatServer.logs.forEach(function (log) {
+      socket.emit('log', log);
+    });
+    
     ChatServer.sockets.push(socket);
 
-
     socket.on('disconnect', function () {
-        socket.get('name', function (err, name) {
-            //ChatServer.deleteKey(ChatServer.sessions, name);
-            ChatServer.sockets.splice(ChatServer.sockets.indexOf(socket), 1);
-        });
+        ChatServer.sockets.splice(ChatServer.sockets.indexOf(socket), 1);
     });
 
     socket.on('log', function (log) {
-      var field1 = String(log || log.field1 || '');
-      var field2 = String(log || log.field2 || '');
-      var field3 = String(log || log.field3 || '');
-
-      if (!field1)
-        return;
-
-      socket.get('name', function (err, name) {
-        broadcast('log', log);
-        ChatServer.logs.push(log);
-      });
+        if(log !== undefined && log !== null){
+            var field1 = String(log.field1 || '');
+            var field2 = String(log.field2 || '');
+            var field3 = String(log.field3 || '');
+            if (!field1)
+                return;
+                
+            broadcast('log', log);
+            ChatServer.logs.push(log);
+      }
+      
     });
     
 };
