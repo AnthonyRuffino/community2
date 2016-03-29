@@ -55,6 +55,7 @@ var socketIO_OnConnectionProvider = socketHub;
 
 var socketIOconnectionData = {};
 socketIOconnectionData.async = async;
+socketIOconnectionData.guid = guid;
 socketIOconnectionData.fs = fs;
 socketIOconnectionData.dirname = __dirname + "/logs/mathers";
 socketIOconnectionData.mkpath = mkpath;
