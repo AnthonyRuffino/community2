@@ -49,7 +49,7 @@ ChatterServer.messages = null;
 ChatterServer.init = function(data){
     console.log("Chat server initializing.");
     ChatterServer.async = data.async;
-    ChatterServer.socketHub = data;
+    ChatterServer.socketHub = data.socketHub;
     ChatterServer.messages = [];
 };
 

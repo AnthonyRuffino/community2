@@ -60,6 +60,10 @@ var CallLogServer = {};
 CallLogServer.async = null;
 CallLogServer.logs = null;
 CallLogServer.socketHub = null;
+CallLogServer.fs = null;
+CallLogServer.mkpath = null;
+CallLogServer.path = null;
+CallLogServer.dirname = null;
 
 CallLogServer.realm = null;
 
@@ -69,7 +73,11 @@ CallLogServer.init = function(data){
     CallLogServer.async = data.async;
     CallLogServer.realm = data.realm;
     CallLogServer.logs = [];
-    CallLogServer.socketHub = data;
+    CallLogServer.socketHub = data.socketHub;
+    CallLogServer.fs = data.fs;
+    CallLogServer.mkpath = data.mkpath;
+    CallLogServer.mkpath = data.path;
+    CallLogServer.dirname = data.dirname;
 };
 
 
@@ -83,8 +91,14 @@ CallLogServer.onConnection = function (socket) {
             var field3 = String(log.schedulingStatus || '');
             if (!field1 && !field2 && !field3)
                 return;
-                
-            log.dateTime = getDateTime();
+            
+            var date = new Date();
+            log.dateTime = getDateTime(date);
+            
+            var dateString = getDate(date);
+            
+            
+            
                 
             broadcast('calllog-log', log);
             CallLogServer.logs.push(log);
@@ -104,9 +118,7 @@ function broadcast(event, data) {
   CallLogServer.socketHub.broadcast(event, data);
 }
 
-function getDateTime() {
-
-    var date = new Date();
+function getDateTime(date) {
 
     var hour = date.getHours();
     hour = (hour < 10 ? "0" : "") + hour;
@@ -128,6 +140,38 @@ function getDateTime() {
     return year + ":" + month + ":" + day + ":" + hour + ":" + min + ":" + sec;
 
 }
+
+function getDate(date) {
+
+    var year = date.getFullYear();
+
+    var month = date.getMonth() + 1;
+    month = (month < 10 ? "0" : "") + month;
+
+    var day  = date.getDate();
+    day = (day < 10 ? "0" : "") + day;
+
+    return year + ":" + month + ":" + day;
+
+}
+
+
+// You probably want to pass in a callback to this function to send back errors, normally
+var mkfile = function (filepath) {
+    CallLogServer.mkpath(CallLogServer.path.dirname(filepath), function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            CallLogServer.fs.writeFile(filepath, "Hey there!", function(err) {
+                if(err) {
+                    console.log(err);
+                } else {
+                    console.log("The file was saved!");
+                }
+            }); 
+        }
+    });
+};
 
 
 try {

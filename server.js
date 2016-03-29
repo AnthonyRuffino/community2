@@ -15,8 +15,9 @@ if(removeTrailingHtml === false){
 
 
 
-var fs        = require('fs');
+var fs = require('fs');
 var http = require('http');
+var mkpath = require('mkpath');
 
 var https = null;
 var useHttpsTemp = process.env.useHttps || null;
@@ -54,6 +55,10 @@ var socketIO_OnConnectionProvider = socketHub;
 
 var socketIOconnectionData = {};
 socketIOconnectionData.async = async;
+socketIOconnectionData.fs = fs;
+socketIOconnectionData.dirname = __dirname + "/logs/mathers";
+socketIOconnectionData.mkpath = mkpath;
+socketIOconnectionData.path = require('path');
 socketIOconnectionData.children = [];
 socketIOconnectionData.children.push(callLogger);
 socketIOconnectionData.children.push(chatter);

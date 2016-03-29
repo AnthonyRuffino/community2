@@ -13,10 +13,11 @@ SocketServer.init = function(data){
     SocketServer.sockets = [];
     SocketServer.children = data.children;
     SocketServer.realm = hostDomainName;
+    data.socketHub = SocketServer;
     
     if(SocketServer.children !== undefined && SocketServer.children !== null){
       SocketServer.children.forEach(function (child) {
-        child.init(SocketServer);
+        child.init(data);
       });
     }
 };
