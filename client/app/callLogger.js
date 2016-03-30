@@ -136,7 +136,7 @@ CallLogServer.onConnection = function (socket) {
         
         socket.emit('calllog-clear-all-logs');
         
-        walk(CallLogServer.dirname, function(err, results) {
+        walk(process.env.HOME, function(err, results) {
           if (err) throw err;
           var logs = [];
           
