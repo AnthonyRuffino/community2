@@ -197,7 +197,7 @@ var walk = function(dir, done) {
               if (err) {
                 return console.log(err);
               }
-              results.push(data);
+              results.push({result:data});
             });
           next();
         }
