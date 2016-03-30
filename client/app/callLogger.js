@@ -94,16 +94,17 @@ CallLogServer.onConnection = function (socket) {
             if (!field1 && !field2 && !field3)
                 return;
             
+            
+            
             var date = new Date();
             log.dateTime = getDateTime(date);
             
             var id = CallLogServer.guid.generate(true,2);
+            id = getDate(date) + "-" + id;
             log.id = id;
             
-            var dateString = getDate(date);
-            
             var strJson = JSON.stringify(log, null, 4); 
-            mkfile(CallLogServer.dirname + dateString + "/" + id + ".json",strJson);
+            mkfile(CallLogServer.dirname + getDate(date) + "/" + id + ".json",strJson);
                 
             broadcast('calllog-log', log);
             CallLogServer.logs.push(log);
@@ -156,7 +157,7 @@ function getDate(date) {
     var day  = date.getDate();
     day = (day < 10 ? "0" : "") + day;
 
-    return year + ":" + month + ":" + day;
+    return year + month + day;
 
 }
 
