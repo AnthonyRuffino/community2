@@ -101,7 +101,7 @@ CallLogServer.onConnection = function (socket) {
             // convert using the TZDB identifier for US Central time
             moment.tz('America/Chicago');
             
-            log.dateTime = moment.format("YYYY-MM-DDHH:mm:ss");
+            log.dateTime = moment.format("YYYY-MM-DD HH:mm:ss");
             
             var id = CallLogServer.guid.generate(true,2);
             id = moment.format("HHmmss") + "-" + id;
