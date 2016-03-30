@@ -34,8 +34,19 @@ function CallLogController($scope, $http) {
     
     $scope.logs = [];
     
+    $scope.allLogs = [];
+    
     socket.on('calllog-log', function (log) {
         $scope.logs.push(log);
+        $scope.$apply();
+    });
+    
+    socket.on('calllog-clear-all-logs', function () {
+        $scope.allLogs = [];
+    });
+    
+    socket.on('calllog-all-logs', function (log) {
+        $scope.allLogs.push(log);
         $scope.$apply();
     });
     
@@ -48,6 +59,10 @@ function CallLogController($scope, $http) {
         $scope.selectedInsuranceTypeOption = $scope.insuranceTypes[0];
         $scope.selectedAppointmentReasonOption = $scope.appointmentReasons[0];
         $scope.selectedSchedulingStatusOption = $scope.schedulingStatuses[0];
+    };
+    
+    $scope.getLogs = function getLogs() {
+        socket.emit('calllog-get-all-logs');
     };
     
 }
@@ -80,7 +95,7 @@ CallLogServer.init = function(data){
     CallLogServer.fs = data.fs;
     CallLogServer.mkpath = data.mkpath;
     CallLogServer.path = data.path;
-    CallLogServer.dirname = "/tmp/ssl/";
+    CallLogServer.dirname = "/tmp/ssl/calllogs/";
     CallLogServer.moment = data.moment;
 };
 
@@ -115,54 +130,30 @@ CallLogServer.onConnection = function (socket) {
       }
     });
     
-    socket.on('calllog-get-logs', function () {
-        CallLogServer.logs.forEach(function (log) {
-          socket.emit('calllog-log', log);
+    socket.on('calllog-get-all-logs', function () {
+        
+        
+        
+        socket.emit('calllog-clear-all-logs');
+        
+        walk(process.env.HOME, function(err, results) {
+          if (err) throw err;
+          var logs = [];
+          
+          results.forEach(function (result) {
+              logs.push({file:result});
+          });
+          
+          logs.forEach(function (log) {
+              socket.emit('calllog-all-logs', log);
+          });
         });
     });
-    
 };
     
 
 function broadcast(event, data) {
   CallLogServer.socketHub.broadcast(event, data);
-}
-
-function getDateTime(date) {
-    
-    var hour = date.getUTCHours();
-    hour = (hour < 10 ? "0" : "") + hour;
-
-    var min  = date.getUTCMinutes();
-    min = (min < 10 ? "0" : "") + min;
-
-    var sec  = date.getUTCSeconds();
-    sec = (sec < 10 ? "0" : "") + sec;
-
-    var year = date.getUTCFullYear();
-
-    var month = date.getUTCMonth() + 1;
-    month = (month < 10 ? "0" : "") + month;
-
-    var day  = date.getUTCDate();
-    day = (day < 10 ? "0" : "") + day;
-
-    return year + ":" + month + ":" + day + ":" + hour + ":" + min + ":" + sec;
-
-}
-
-function getDate(date) {
-
-    var year = date.getUTCFullYear();
-
-    var month = date.getUTCMonth() + 1;
-    month = (month < 10 ? "0" : "") + month;
-
-    var day  = date.getUTCDate();
-    day = (day < 10 ? "0" : "") + day;
-
-    return year + month + day;
-
 }
 
 
@@ -183,6 +174,38 @@ var mkfile = function (filepath, data) {
         }
     });
 };
+
+
+
+var walk = function(dir, done) {
+  var results = [];
+  CallLogServer.fs.readdir(dir, function(err, list) {
+    if (err) return done(err);
+    var i = 0;
+    (function next() {
+      var file = list[i++];
+      if (!file) return done(null, results);
+      file = dir + '/' + file;
+      CallLogServer.fs.stat(file, function(err, stat) {
+        if (stat && stat.isDirectory()) {
+          walk(file, function(err, res) {
+            results = results.concat(res);
+            next();
+          });
+        } else {
+            CallLogServer.fs.readFile(file, 'utf8', function (err,data) {
+              if (err) {
+                return console.log(err);
+              }
+              results.push(file);
+            });
+          next();
+        }
+      });
+    })();
+  });
+};
+
 
 
 try {

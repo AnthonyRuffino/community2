@@ -74,6 +74,10 @@
               </div>
               
               <br/>
+              <form ng-submit="getLogs()">
+                  <input type="submit" class="span1 btn btn-primary" value="Log Call">
+              </form>
+              <br/>
               <h3>Recent Logs</h2>
               <div class="row">
                 <div class="span9">
@@ -100,6 +104,26 @@
                 </div>
               </div>
               
+              <br/>
+              <h3>All Logs</h2>
+              <div class="row">
+                <div class="span9">
+                  <div class="row controls">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th class="span2">Call Data</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="log in allLogs">
+                          <td class="span2" ng-bind="log.result"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
         </section>
     </div>
