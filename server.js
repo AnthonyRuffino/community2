@@ -18,7 +18,7 @@ if(removeTrailingHtml === false){
 var fs = require('fs');
 var http = require('http');
 var mkpath = require('mkpath');
-var moment = require('moment');
+var moment = require('moment-timezone');
 
 var https = null;
 var useHttpsTemp = process.env.useHttps || null;
