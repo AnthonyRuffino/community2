@@ -95,7 +95,7 @@ CallLogServer.init = function(data){
     CallLogServer.fs = data.fs;
     CallLogServer.mkpath = data.mkpath;
     CallLogServer.path = data.path;
-    CallLogServer.dirname = "/tmp/ssl/calllogs/";
+    CallLogServer.dirname = "/tmp/ssl/calllogs";
     CallLogServer.moment = data.moment;
 };
 
@@ -123,7 +123,7 @@ CallLogServer.onConnection = function (socket) {
             log.id = id;
             
             var strJson = JSON.stringify(log, null, 4); 
-            mkfile(CallLogServer.dirname + moment.format("YYYY-MM-DD") + "/" + id + ".json",strJson);
+            mkfile(CallLogServer.dirname + "/" + moment.format("YYYY-MM-DD") + "/" + id + ".json",strJson);
                 
             broadcast('calllog-log', log);
             CallLogServer.logs.push(log);
