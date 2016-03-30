@@ -97,7 +97,7 @@ CallLogServer.onConnection = function (socket) {
                 return;
             
             
-            var moment = CallLogServer.moment.moment();
+            var moment = CallLogServer.moment();
             // convert using the TZDB identifier for US Central time
             moment.tz('America/Chicago');
             
