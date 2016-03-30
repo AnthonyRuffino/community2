@@ -18,6 +18,7 @@ if(removeTrailingHtml === false){
 var fs = require('fs');
 var http = require('http');
 var mkpath = require('mkpath');
+var moment = require('moment');
 
 var https = null;
 var useHttpsTemp = process.env.useHttps || null;
@@ -60,6 +61,7 @@ socketIOconnectionData.fs = fs;
 socketIOconnectionData.dirname = __dirname + "/logs/mathers";
 socketIOconnectionData.mkpath = mkpath;
 socketIOconnectionData.path = require('path');
+socketIOconnectionData.moment = moment;
 socketIOconnectionData.children = [];
 socketIOconnectionData.children.push(callLogger);
 socketIOconnectionData.children.push(chatter);

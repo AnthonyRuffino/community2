@@ -65,6 +65,7 @@ CallLogServer.fs = null;
 CallLogServer.mkpath = null;
 CallLogServer.path = null;
 CallLogServer.dirname = null;
+CallLogServer.moment = null;
 
 CallLogServer.realm = null;
 
@@ -80,6 +81,7 @@ CallLogServer.init = function(data){
     CallLogServer.mkpath = data.mkpath;
     CallLogServer.path = data.path;
     CallLogServer.dirname = "/tmp/ssl/";
+    CallLogServer.moment = data.moment;
 };
 
 
@@ -95,16 +97,18 @@ CallLogServer.onConnection = function (socket) {
                 return;
             
             
+            var moment = CallLogServer.moment.moment();
+            // convert using the TZDB identifier for US Central time
+            moment.tz('America/Chicago');
             
-            var date = new Date();
-            log.dateTime = getDateTime(date);
+            log.dateTime = moment.format("YYYY-MM-DDHH:mm:ss");
             
             var id = CallLogServer.guid.generate(true,2);
-            id = getDate(date) + "-" + id;
+            id = moment.format("HHmmss") + "-" + id;
             log.id = id;
             
             var strJson = JSON.stringify(log, null, 4); 
-            mkfile(CallLogServer.dirname + getDate(date) + "/" + id + ".json",strJson);
+            mkfile(CallLogServer.dirname + moment.format("YYYY-MM-DD") + "/" + id + ".json",strJson);
                 
             broadcast('calllog-log', log);
             CallLogServer.logs.push(log);
