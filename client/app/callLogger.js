@@ -136,16 +136,10 @@ CallLogServer.onConnection = function (socket) {
         
         socket.emit('calllog-clear-all-logs');
         
-        walk(process.env.HOME, function(err, results) {
+        walk(CallLogServer.dirname, function(err, results) {
           if (err) throw err;
-          var logs = [];
-          
           results.forEach(function (result) {
-              logs.push(result);
-          });
-          
-          logs.forEach(function (log) {
-              socket.emit('calllog-all-logs', log);
+              socket.emit('calllog-all-logs', result);
           });
         });
     });
