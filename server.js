@@ -195,6 +195,16 @@ else{
 //BEGIN MIDDLEWARE///
 //////////////////////////
 //This allows for navigation to html pages without the .html extension
+function requireHTTPS(req, res, next) {
+    if (!req.secure) {
+        //FYI this should work for local development as well
+        return res.redirect('https://' + req.get('host') + req.url);
+    }
+    next();
+}
+
+router.use(requireHTTPS);
+
 if(removeTrailingHtml === true || (path === undefined || path === null)){
     router.use(function(req, res, next) {
         if (req.path.indexOf('.') === -1) {
