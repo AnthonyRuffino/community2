@@ -203,7 +203,10 @@ function requireHTTPS(req, res, next) {
     next();
 }
 
-router.use(requireHTTPS);
+if(useHttps === true){
+    router.use(requireHTTPS);
+}
+
 
 if(removeTrailingHtml === true || (path === undefined || path === null)){
     router.use(function(req, res, next) {
