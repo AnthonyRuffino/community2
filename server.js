@@ -33,6 +33,20 @@ if(useHttpsTemp !== undefined && useHttpsTemp!= null && (useHttpsTemp === true |
 }
 
 
+var mySqlIp = process.env.MYSQL_PORT_3306_TCP_ADDR || null;
+var mysqlClient = null;
+
+if(mySqlIp !== null && mySqlIp !== null){
+    mysqlClient = require('mariasql');
+}
+
+var c = new mysqlClient({
+  host: mySqlIp,
+  user: 'root',
+  password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD
+});
+
+
 
 var async = require('async');
 var socketio = require('socket.io');
@@ -332,6 +346,16 @@ router.delete('/api/data', function(req, res) {
             }
         }
     }
+});
+
+
+router.get('/api/db', function(req, res) {
+    c.query('SHOW DATABASES', function(err, rows) {
+      if (err)
+        throw err;
+      res.json(200, { rows: rows });
+    });
+    
 });
 
 
