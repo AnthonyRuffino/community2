@@ -393,8 +393,8 @@ router.get('/api/persons', function(req, res) {
 });
 
 router.post('/api/person', function(request, response){
-  var query = mySqlConnection2.query('INSERT INTO Persons SET ?', (request.body, function(err, result) {
-  });
+  var query = mySqlConnection2.query('INSERT INTO posts SET ?', request.body, function(err, result) {
+});
   
   response.send(request.body);    // echo the result back
 });
