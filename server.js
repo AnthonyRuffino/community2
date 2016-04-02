@@ -468,5 +468,5 @@ if(server === undefined || server === null){
 //HTTP
 server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
     var addr = server.address();
-    console.log("HTTP server listening at", addr.address + ":" + addr.port);
+    console.log("Forked HTTP server listening at", addr.address + ":" + addr.port);
 });
