@@ -394,7 +394,6 @@ router.get('/api/persons', function(req, res) {
     
 });
 
-\
 
 router.get('/api/addperson', function(req, res) {
   var query = mySqlConnection.query('INSERT INTO posts SET ?', {
