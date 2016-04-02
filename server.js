@@ -35,30 +35,14 @@ if(useHttpsTemp !== undefined && useHttpsTemp!= null && (useHttpsTemp === true |
 
 var mySqlIp = process.env.MYSQL_PORT_3306_TCP_ADDR || null;
 
-var mySqlConnection2 = null;
 var mySqlConnection = null;
 
 
 
 if(mySqlIp !== null && mySqlIp !== null){
-    
-    
-    try{
-        var mysqlClient = require('mariasql');
-        
-        mySqlConnection = new mysqlClient({
-          host: mySqlIp,
-          user: 'root',
-          password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD
-        });
-    }catch (e) {
-        console.log('FAILED TO LOAD mariasql. ');
-        console.log(e)
-    }
-    
     try {
-         var mysqlClient2 = require('mysql');
-         mySqlConnection2 = mysqlClient2.createConnection({
+         var mysqlClient = require('mysql');
+         mySqlConnection = mysqlClient.createConnection({
              host: mySqlIp,
              user: 'root',
              password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD,
@@ -68,12 +52,6 @@ if(mySqlIp !== null && mySqlIp !== null){
         console.log('FAILED TO LOAD mysql. ');
         console.log(e)
     }
-    
-    
-    
-    
-    
-    
 }
 
 
@@ -410,8 +388,8 @@ router.get('/api/persons', function(req, res) {
 
 
 router.get('/api/addperson', function(req, res) {
-    if(mySqlConnection2 != null){
-        var query = mySqlConnection2.query('INSERT INTO posts SET ?', {
+    if(mySqlConnection != null){
+        var query = mySqlConnection.query('INSERT INTO Persons SET ?', {
           "PersonID": "2",
           "LastName": "Ruffino2",
           "FirstName": "Tony2",
@@ -423,7 +401,7 @@ router.get('/api/addperson', function(req, res) {
             res.send(result);
         });
     }else{
-        res.send('mySqlConnection2 not initialized!');
+        res.send('mySqlConnection not initialized!');
     }
 });
 
