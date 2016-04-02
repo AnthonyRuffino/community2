@@ -40,7 +40,7 @@ if(mySqlIp !== null && mySqlIp !== null){
     mysqlClient = require('mariasql');
 }
 
-var c = new mysqlClient({
+var mySqlConnection = new mysqlClient({
   host: mySqlIp,
   user: 'root',
   password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD
@@ -350,7 +350,16 @@ router.delete('/api/data', function(req, res) {
 
 
 router.get('/api/db', function(req, res) {
-    c.query('SHOW DATABASES', function(err, rows) {
+    mySqlConnection.query('SHOW DATABASES', function(err, rows) {
+      if (err)
+        throw err;
+      res.json(200, { rows: rows });
+    });
+    
+});
+
+router.get('/api/db2', function(req, res) {
+    mySqlConnection.query(req.query.sql, function(err, rows) {
       if (err)
         throw err;
       res.json(200, { rows: rows });
