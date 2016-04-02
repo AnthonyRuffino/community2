@@ -394,7 +394,9 @@ router.get('/api/persons', function(req, res) {
     
 });
 
-router.post('/api/person', function(request, response){
+\
+
+router.get('/api/addperson', function(req, res) {
   var query = mySqlConnection.query('INSERT INTO posts SET ?', {
       "PersonID": "2",
       "LastName": "Ruffino2",
@@ -402,9 +404,10 @@ router.post('/api/person', function(request, response){
       "Address": null,
       "City": null
     }, function(err, result) {
-});
+        res.send(result);    // echo the result back
+    });
   
-  response.send(request.body);    // echo the result back
+  
 });
 
 
