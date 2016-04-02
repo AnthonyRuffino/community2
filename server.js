@@ -34,17 +34,33 @@ if(useHttpsTemp !== undefined && useHttpsTemp!= null && (useHttpsTemp === true |
 
 
 var mySqlIp = process.env.MYSQL_PORT_3306_TCP_ADDR || null;
-var mysqlClient = null;
+
+var mySqlConnection2 = null;
+var mySqlConnection = null;
+
+
 
 if(mySqlIp !== null && mySqlIp !== null){
-    mysqlClient = require('mariasql');
+    var mysqlClient = require('mariasql');
+    var mysqlClient2 = require('mysql');
+    
+    mySqlConnection = new mysqlClient({
+      host: mySqlIp,
+      user: 'root',
+      password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD
+    });
+    
+    mySqlConnection2 = mysqlClient2.createConnection({
+      host: mySqlIp,
+      user: 'root',
+      password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD,
+      database : 'ncidence'
+    });
 }
 
-var mySqlConnection = new mysqlClient({
-  host: mySqlIp,
-  user: 'root',
-  password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD
-});
+
+
+
 
 
 
@@ -365,6 +381,22 @@ router.get('/api/db2', function(req, res) {
       res.json(200, { rows: rows });
     });
     
+});
+
+router.get('/api/persons', function(req, res) {
+    mySqlConnection.query(req.query.sql, function(err, rows) {
+      if (err)
+        throw err;
+      res.json(200, { rows: rows });
+    });
+    
+});
+
+router.post('/api/person', function(request, response){
+  var query = mySqlConnection2.query('INSERT INTO Persons SET ?', (request.body, function(err, result) {
+  });
+  
+  response.send(request.body);    // echo the result back
 });
 
 
