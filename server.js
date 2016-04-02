@@ -42,7 +42,7 @@ var mySqlConnection = null;
 
 if(mySqlIp !== null && mySqlIp !== null){
     var mysqlClient = require('mariasql');
-    //var mysqlClient2 = require('mysql');
+    var mysqlClient2 = require('mysql');
     
     mySqlConnection = new mysqlClient({
       host: mySqlIp,
@@ -50,14 +50,14 @@ if(mySqlIp !== null && mySqlIp !== null){
       password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD
     });
     
-    /*
+    
     mySqlConnection2 = mysqlClient2.createConnection({
       host: mySqlIp,
       user: 'root',
       password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD,
       database : 'ncidence'
     });
-    */
+    
 }
 
 
@@ -396,7 +396,7 @@ router.get('/api/persons', function(req, res) {
 
 
 router.get('/api/addperson', function(req, res) {
-  var query = mySqlConnection.query('INSERT INTO posts SET ?', {
+  var query = mySqlConnection2.query('INSERT INTO posts SET ?', {
       "PersonID": "2",
       "LastName": "Ruffino2",
       "FirstName": "Tony2",
