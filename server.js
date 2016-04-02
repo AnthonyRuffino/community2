@@ -41,22 +41,38 @@ var mySqlConnection = null;
 
 
 if(mySqlIp !== null && mySqlIp !== null){
-    var mysqlClient = require('mariasql');
-    var mysqlClient2 = require('mysql');
-    
-    mySqlConnection = new mysqlClient({
-      host: mySqlIp,
-      user: 'root',
-      password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD
-    });
     
     
-    mySqlConnection2 = mysqlClient2.createConnection({
-      host: mySqlIp,
-      user: 'root',
-      password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD,
-      database : 'ncidence'
-    });
+    try{
+        var mysqlClient = require('mariasql');
+        
+        mySqlConnection = new mysqlClient({
+          host: mySqlIp,
+          user: 'root',
+          password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD
+        });
+    }catch (e) {
+        console.log('FAILED TO LOAD mariasql. ');
+        console.log(e)
+    }
+    
+    try {
+         var mysqlClient2 = require('mysql');
+         mySqlConnection2 = mysqlClient2.createConnection({
+             host: mySqlIp,
+             user: 'root',
+             password: process.env.MYSQL_ENV_MYSQL_ROOT_PASSWORD,
+             database : 'ncidence'
+         });
+    }catch (e) {
+        console.log('FAILED TO LOAD mysql. ');
+        console.log(e)
+    }
+    
+    
+    
+    
+    
     
 }
 
@@ -226,10 +242,8 @@ else{
 //////////////////////////
 //BEGIN MIDDLEWARE///
 //////////////////////////
-//This allows for navigation to html pages without the .html extension
 function requireHTTPS(req, res, next) {
     if (!req.secure) {
-        //FYI this should work for local development as well
         return res.redirect('https://' + req.get('host') + req.url);
     }
     next();
@@ -239,7 +253,7 @@ if(useHttps === true){
     router.use(requireHTTPS);
 }
 
-
+//This allows for navigation to html pages without the .html extension
 if(removeTrailingHtml === true || (path === undefined || path === null)){
     router.use(function(req, res, next) {
         if (req.path.indexOf('.') === -1) {
@@ -396,17 +410,21 @@ router.get('/api/persons', function(req, res) {
 
 
 router.get('/api/addperson', function(req, res) {
-  var query = mySqlConnection2.query('INSERT INTO posts SET ?', {
-      "PersonID": "2",
-      "LastName": "Ruffino2",
-      "FirstName": "Tony2",
-      "Address": null,
-      "City": null
-    }, function(err, result) {
-        res.send(result);    // echo the result back
-    });
-  
-  
+    if(mySqlConnection2 != null){
+        var query = mySqlConnection2.query('INSERT INTO posts SET ?', {
+          "PersonID": "2",
+          "LastName": "Ruffino2",
+          "FirstName": "Tony2",
+          "Address": null,
+          "City": null
+        }, function(err, result) {
+            if (err)
+                throw err; 
+            res.send(result);
+        });
+    }else{
+        res.send('mySqlConnection2 not initialized!');
+    }
 });
 
 router.get('/api/yup', function(req, res) {
