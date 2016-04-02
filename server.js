@@ -409,6 +409,10 @@ router.get('/api/addperson', function(req, res) {
   
 });
 
+router.get('/api/yup', function(req, res) {
+  res.send({uh:'huh'});
+});
+
 
 
 
