@@ -261,7 +261,7 @@ if(removeTrailingHtml === true || (path === undefined || path === null)){
 //BEGIN CONTROLLER ROUTES///
 ////////////////////////////
 router.get('/api/secret', function(req, res) {
-    res.json(200, {test:'val'});
+    res.json(200, {test:'val2'});
 });
 
 
